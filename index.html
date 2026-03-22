@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReviewBridge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-primary: #FAF9F6;
+    --bg-secondary: #F0EFEB;
+    --bg-card: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6B6B;
+    --text-tertiary: #9B9B9B;
+    --border: #E5E4E0;
+    --border-hover: #D0CFC9;
+    --accent: #FF6B35;
+    --accent-soft: #FFF0E9;
+    --accent-hover: #E55A28;
+    --green: #2DB67D;
+    --green-soft: #E8F8F0;
+    --yellow: #FFBE0B;
+    --yellow-soft: #FFF8E0;
+    --red: #EF476F;
+    --red-soft: #FDE8ED;
+    --purple: #7B61FF;
+    --purple-soft: #EFECFF;
+    --blue: #3B82F6;
+    --blue-soft: #EBF2FF;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+    --shadow-xl: 0 20px 60px rgba(0,0,0,0.1);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-full: 999px;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ========== NAVIGATION ========== */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(250, 249, 246, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.3px;
+    cursor: pointer;
+  }
+
+  .nav-logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-secondary);
+    padding: 4px;
+    border-radius: var(--radius-full);
+  }
+
+  .nav-tab {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    background: none;
+  }
+
+  .nav-tab:hover { color: var(--text-primary); }
+  .nav-tab.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ========== BUTTONS ========== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: var(--text-primary);
+    color: white;
+  }
+  .btn-primary:hover { background: #333; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+  .btn-accent {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-accent:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+  .btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--border-hover); background: var(--bg-card); }
+
+  .btn-ghost {
+    background: none;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover { color: var(--text-primary); background: var(--bg-secondary); }
+
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-lg { padding: 14px 28px; font-size: 15px; }
+  .btn-icon { padding: 10px; }
+
+  /* ========== VIEWS ========== */
+  .view {
+    display: none;
+    padding-top: 64px;
+    min-height: 100vh;
+  }
+  .view.active { display: block; }
+
+  /* Reviewer view should not scroll — lock to viewport */
+  #view-reviewer {
+    padding-top: 0;
+    min-height: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 32px;
+  }
+
+  /* ========== DASHBOARD VIEW ========== */
+  .dash-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  .dash-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+
+  .dash-header p {
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-size: 15px;
+  }
+
+  .dash-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    transition: var(--transition);
+  }
+
+  .stat-card:hover { box-shadow: var(--shadow-md); }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -1px;
+  }
+
+  .stat-change {
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  .stat-change.up { color: var(--green); }
+  .stat-change.down { color: var(--red); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  .review-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .review-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    border-color: var(--border-hover);
+  }
+
+  .review-card-preview {
+    height: 180px;
+    background: var(--bg-secondary);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .review-card-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .review-card-preview-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    opacity: 0.3;
+  }
+
+  .review-card-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-active { background: var(--green-soft); color: var(--green); }
+  .badge-draft { background: var(--bg-secondary); color: var(--text-tertiary); border: 1px solid var(--border); }
+  .badge-closed { background: var(--red-soft); color: var(--red); }
+
+  .review-card-body {
+    padding: 20px;
+  }
+
+  .review-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+
+  .review-card-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .review-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .review-card-vibe {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .vibe-mini-bar {
+    width: 80px;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .vibe-mini-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .vibe-mini-score {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .review-card-reviewers {
+    display: flex;
+  }
+
+  .reviewer-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    margin-left: -6px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+  }
+
+  .reviewer-dot:first-child { margin-left: 0; }
+
+  .review-card-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* ========== CREATE VIEW ========== */
+  .create-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 60px 32px;
+  }
+
+  .create-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .create-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .create-header p {
+    color: var(--text-secondary);
+    font-size: 16px;
+  }
+
+  .create-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 48px;
+  }
+
+  .create-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+  }
+
+  .create-step.active { color: var(--text-primary); }
+  .create-step.done { color: var(--green); }
+
+  .create-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .create-step.active .create-step-num {
+    background: var(--text-primary);
+    color: white;
+    border-color: var(--text-primary);
+  }
+
+  .create-step.done .create-step-num {
+    background: var(--green);
+    color: white;
+    border-color: var(--green);
+  }
+
+  .create-step-line {
+    width: 40px;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .form-group {
+    margin-bottom: 28px;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .form-hint {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-family: inherit;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: var(--transition);
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .form-input::placeholder { color: var(--text-tertiary); }
+
+  textarea.form-input {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: 48px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg-card);
+  }
+
+  .upload-zone:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .upload-zone-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .upload-zone h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  .embed-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .embed-option {
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg-card);
+  }
+
+  .embed-option:hover { border-color: var(--border-hover); }
+  .embed-option.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .embed-option-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .embed-option-label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .question-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    transition: var(--transition);
+  }
+
+  .question-item:hover { border-color: var(--border-hover); }
+
+  .question-drag {
+    color: var(--text-tertiary);
+    cursor: grab;
+    font-size: 16px;
+  }
+
+  .question-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: inherit;
+    background: none;
+    color: var(--text-primary);
+  }
+
+  .question-type {
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+
+  .question-remove {
+    color: var(--text-tertiary);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 16px;
+    transition: var(--transition);
+  }
+
+  .question-remove:hover { color: var(--red); }
+
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ========== REVIEWER VIEW ========== */
+  .reviewer-layout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    height: calc(100vh - 64px);
+    margin-top: 64px;
+    overflow: hidden;
+  }
+
+  .reviewer-prototype {
+    background: #1A1A1A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .prototype-frame {
+    width: 90%;
+    height: 90%;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .prototype-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Pin overlay — sits on top of iframe, only captures clicks in pin mode */
+  .pin-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .pin-overlay.pin-mode {
+    pointer-events: all;
+    cursor: crosshair;
+    background: transparent;
+    box-shadow: inset 0 0 0 3px rgba(123, 97, 255, 0.5);
+    border-radius: var(--radius-lg);
+  }
+
+  .pin-mode-toggle {
+    position: fixed;
+    bottom: 24px;
+    left: calc((100% - 420px) / 2);
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--purple);
+    backdrop-filter: blur(12px);
+    border-radius: var(--radius-full);
+    border: none;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .pin-mode-toggle:hover {
+    background: #6A4FE8;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .pin-mode-toggle.active {
+    background: var(--accent);
+  }
+
+  .pin-mode-toggle.active:hover {
+    background: var(--accent-hover);
+  }
+
+  .prototype-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    background: #f5f5f7;
+    gap: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .prototype-placeholder-mockup {
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 16/10;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mockup-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .mockup-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .mockup-nav-bar {
+    flex: 1;
+    height: 24px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    margin-left: 8px;
+  }
+
+  .mockup-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 12px;
+  }
+
+  .mockup-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mockup-sidebar-item {
+    height: 12px;
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
+
+  .mockup-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mockup-card {
+    height: 40px;
+    background: #f8f8f8;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+  }
+
+  .mockup-card.large { height: 80px; }
+
+  .pin-marker {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    z-index: 10;
+  }
+
+  .pin-marker:hover { transform: rotate(-45deg) scale(1.1); }
+
+  .pin-marker span {
+    transform: rotate(45deg);
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .reviewer-panel {
+    background: var(--bg-card);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+
+  .panel-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-tab {
+    flex: 1;
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: var(--transition);
+    position: relative;
+    font-family: inherit;
+  }
+
+  .panel-tab:hover { color: var(--text-primary); }
+
+  .panel-tab.active {
+    color: var(--text-primary);
+  }
+
+  .panel-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 16px;
+    right: 16px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+  }
+
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .panel-section { display: none; }
+  .panel-section.active { display: block; }
+
+  /* ========== VIBE CHECK ========== */
+  .vibe-check {
+    text-align: center;
+    padding: 16px 0;
+  }
+
+  .vibe-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+  }
+
+  .vibe-emoji {
+    font-size: 56px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    display: block;
+    line-height: 1;
+  }
+
+  .vibe-slider-container {
+    position: relative;
+    padding: 0 8px;
+    margin-bottom: 12px;
+  }
+
+  .vibe-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    outline: none;
+    transition: var(--transition);
+  }
+
+  .vibe-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+  }
+
+  .vibe-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .vibe-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .vibe-score-display {
+    margin-top: 16px;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-full);
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* ========== FEEDBACK QUESTIONS ========== */
+  .feedback-section {
+    margin-top: 24px;
+  }
+
+  .feedback-question {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .feedback-question:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .feedback-q-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feedback-q-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .feedback-answer {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    transition: var(--transition);
+    background: var(--bg-primary);
+  }
+
+  .feedback-answer:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    background: var(--bg-card);
+  }
+
+  .feedback-rating {
+    display: flex;
+    gap: 8px;
+  }
+
+  .feedback-rating-btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+  }
+
+  .feedback-rating-btn:hover { border-color: var(--border-hover); }
+  .feedback-rating-btn.selected {
+    background: var(--text-primary);
+    color: white;
+    border-color: var(--text-primary);
+  }
+
+  /* ========== PIN COMMENTS ========== */
+  .pin-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pin-comment {
+    display: flex;
+    gap: 12px;
+  }
+
+  .pin-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .pin-comment-body {
+    flex: 1;
+  }
+
+  .pin-comment-author {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .pin-comment-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .pin-comment-time {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+
+  .add-pin-prompt {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--text-tertiary);
+    font-size: 14px;
+  }
+
+  .add-pin-prompt span {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* ========== AI VIBE CHECK ========== */
+  .ai-vibe-section {
+    margin-top: 8px;
+  }
+
+  .ai-vibe-card {
+    background: linear-gradient(135deg, #f8f7ff, #fff0e9);
+    border: 1px solid #e8e4ff;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .ai-vibe-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .ai-vibe-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--purple), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .ai-vibe-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .ai-vibe-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .ai-analysis-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+
+  .ai-analysis-score {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .score-high { background: var(--green-soft); color: var(--green); }
+  .score-mid { background: var(--yellow-soft); color: #C59400; }
+  .score-low { background: var(--red-soft); color: var(--red); }
+
+  .ai-analysis-content {
+    flex: 1;
+  }
+
+  .ai-analysis-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .ai-analysis-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .ai-suggestion {
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .ai-suggestion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  /* ========== RESULTS VIEW ========== */
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .results-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  .results-overview {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .results-vibe-summary {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    text-align: center;
+  }
+
+  .results-vibe-score {
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .results-vibe-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .results-vibe-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .vibe-breakdown-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .vibe-breakdown-emoji { font-size: 18px; width: 28px; text-align: center; }
+
+  .vibe-breakdown-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .vibe-breakdown-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .vibe-breakdown-count {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    width: 24px;
+    text-align: right;
+  }
+
+  .results-responses {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+  }
+
+  .results-responses h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: -0.2px;
+  }
+
+  .response-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .response-item:last-child { border-bottom: none; }
+
+  .response-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .response-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .response-name {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .response-vibe {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-left: auto;
+  }
+
+  .response-answers {
+    margin-left: 38px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .response-answer-q {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-bottom: 2px;
+  }
+
+  .response-answer-a {
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* ========== SHARE MODAL ========== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: var(--shadow-xl);
+    animation: modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .modal p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .share-link-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .share-link-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .share-copied {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background: var(--text-primary);
+    color: white;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 300;
+    display: none;
+    animation: fadeInOut 2s ease;
+  }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  }
+
+  .invite-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ========== ANIMATIONS ========== */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in {
+    animation: slideUp 0.4s ease forwards;
+  }
+
+  .animate-in:nth-child(2) { animation-delay: 0.05s; }
+  .animate-in:nth-child(3) { animation-delay: 0.1s; }
+  .animate-in:nth-child(4) { animation-delay: 0.15s; }
+
+  /* ========== EMPTY STATE ========== */
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  .empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  /* ========== LOADING / AI ANIMATION ========== */
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 20px;
+  }
+
+  .ai-loading-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--purple);
+    animation: aiPulse 1.4s infinite;
+  }
+
+  .ai-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .ai-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes aiPulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .typing-text {
+    overflow: hidden;
+    border-right: 2px solid var(--purple);
+    white-space: nowrap;
+    animation: typing 0.5s steps(40) forwards, blink 0.75s step-end infinite;
+  }
+
+  @keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  @keyframes blink {
+    50% { border-color: transparent; }
+  }
+
+  /* ========== SCROLLBAR ========== */
+  .panel-content::-webkit-scrollbar { width: 6px; }
+  .panel-content::-webkit-scrollbar-track { background: transparent; }
+  .panel-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .panel-content::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+  /* ========== TOAST ========== */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    padding: 14px 24px;
+    background: var(--text-primary);
+    color: white;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 300;
+    display: none;
+    animation: slideUp 0.3s ease;
+  }
+
+  .toast.active { display: flex; align-items: center; gap: 8px; }
+
+  /* ========== ROLE-BASED VISIBILITY ========== */
+  /* Hidden by default — shown via JS when user is the designer/owner */
+  .designer-only { display: none; }
+  body.is-designer .designer-only { display: block; }
+
+  /* Hidden for designers, shown for reviewers */
+  .reviewer-only { display: none; }
+  body.is-reviewer .reviewer-only { display: block; }
+
+  /* ========== CARD ACTION MENU ========== */
+  .review-card-actions {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: var(--transition);
+    z-index: 5;
+  }
+
+  .review-card:hover .review-card-actions {
+    opacity: 1;
+  }
+
+  .review-card-preview {
+    position: relative;
+  }
+
+  .card-action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    backdrop-filter: blur(8px);
+  }
+
+  .card-action-close {
+    background: rgba(0,0,0,0.6);
+    color: white;
+  }
+
+  .card-action-close:hover {
+    background: var(--yellow);
+    color: #1a1a1a;
+  }
+
+  .card-action-delete {
+    background: rgba(0,0,0,0.6);
+    color: white;
+  }
+
+  .card-action-delete:hover {
+    background: var(--red);
+    color: white;
+  }
+
+  /* ========== CONFIRM MODAL ========== */
+  .confirm-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .confirm-modal.active { display: flex; }
+
+  .confirm-box {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: var(--shadow-xl);
+    animation: modalIn 0.3s ease;
+    text-align: center;
+  }
+
+  .confirm-box h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .confirm-box p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  /* ========== ARCHIVED SECTION ========== */
+  .archived-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    margin-top: 32px;
+    transition: var(--transition);
+  }
+
+  .archived-toggle:hover { color: var(--text-primary); }
+
+  .archived-toggle .arrow {
+    transition: transform 0.2s ease;
+    font-size: 12px;
+  }
+
+  .archived-toggle.open .arrow {
+    transform: rotate(90deg);
+  }
+
+  .archived-grid {
+    display: none;
+    margin-top: 16px;
+  }
+
+  .archived-grid.open {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  .archived-grid .review-card {
+    opacity: 0.7;
+  }
+
+  .archived-grid .review-card:hover {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== NAVIGATION ========== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="showView('dashboard')">
+      <div class="nav-logo-icon">R</div>
+      ReviewBridge
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-view="dashboard" onclick="showView('dashboard')">Dashboard</button>
+      <button class="nav-tab" data-view="create" onclick="showView('create')">New Review</button>
+      <button class="nav-tab" data-view="reviewer" onclick="showView('reviewer')">Reviewer</button>
+      <button class="nav-tab" data-view="results" onclick="showView('results')">Results</button>
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-accent btn-sm" onclick="showView('create')">+ New Review</button>
+      <div class="nav-avatar">RP</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ========== COPIED TOAST ========== -->
+<div class="share-copied" id="copiedToast">Copied to clipboard</div>
+
+<!-- ========== DASHBOARD VIEW ========== -->
+<div class="view active" id="view-dashboard">
+  <div class="container">
+    <div class="dash-header animate-in">
+      <div>
+        <h1>Your Reviews</h1>
+        <p>Collect structured feedback on your work — fast.</p>
+      </div>
+      <button class="btn btn-primary" onclick="showView('create')">+ New Review</button>
+    </div>
+
+    <div class="dash-stats animate-in">
+      <div class="stat-card">
+        <div class="stat-label">Active Reviews</div>
+        <div class="stat-value">3</div>
+        <div class="stat-change up">+2 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Responses</div>
+        <div class="stat-value">14</div>
+        <div class="stat-change up">+8 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. Vibe Score</div>
+        <div class="stat-value">7.8</div>
+        <div class="stat-change up">+0.6 vs last</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. Response Time</div>
+        <div class="stat-value">2.4h</div>
+        <div class="stat-change up">1.2h faster</div>
+      </div>
+    </div>
+
+    <div class="section-header animate-in">
+      <h2>Recent Reviews</h2>
+      <button class="btn btn-ghost btn-sm">View all</button>
+    </div>
+
+    <div class="review-grid animate-in" id="review-grid"></div>
+
+    <!-- Archived Reviews -->
+    <button class="archived-toggle" id="archived-toggle" onclick="toggleArchived()">
+      <span class="arrow">▶</span>
+      Archived Reviews <span id="archived-count" style="color:var(--text-tertiary);font-weight:400">(0)</span>
+    </button>
+    <div class="archived-grid" id="archived-grid"></div>
+
+  </div>
+</div>
+
+<!-- ========== CONFIRM MODAL ========== -->
+<div class="confirm-modal" id="confirm-modal">
+  <div class="confirm-box">
+    <h3 id="confirm-title">Are you sure?</h3>
+    <p id="confirm-message">This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-action" style="background:var(--red)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CREATE VIEW ========== -->
+<div class="view" id="view-create">
+  <div class="create-container">
+    <div class="create-header animate-in">
+      <h1>New Review</h1>
+      <p>Share your work and get structured feedback in hours, not days.</p>
+    </div>
+
+    <div class="create-steps animate-in">
+      <div class="create-step active" id="step-1-indicator">
+        <div class="create-step-num">1</div>
+        Content
+      </div>
+      <div class="create-step-line"></div>
+      <div class="create-step" id="step-2-indicator">
+        <div class="create-step-num">2</div>
+        Questions
+      </div>
+      <div class="create-step-line"></div>
+      <div class="create-step" id="step-3-indicator">
+        <div class="create-step-num">3</div>
+        Share
+      </div>
+    </div>
+
+    <!-- Step 1: Content -->
+    <div id="create-step-1" class="animate-in">
+      <div class="form-group">
+        <label class="form-label">Review title</label>
+        <input class="form-input" type="text" placeholder="e.g. Shipment Tracker Redesign" id="review-title">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Context</label>
+        <textarea class="form-input" placeholder="What are you working on? Where are you stuck? What kind of feedback do you need?" id="review-context"></textarea>
+        <p class="form-hint">Be specific — it helps reviewers give better feedback.</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Embed your design</label>
+        <div class="embed-options">
+          <div class="embed-option selected" onclick="selectEmbed(this, 'prototype')">
+            <div class="embed-option-icon">🔗</div>
+            <div class="embed-option-label">Prototype URL</div>
+          </div>
+          <div class="embed-option" onclick="selectEmbed(this, 'figma')">
+            <div class="embed-option-icon">🎨</div>
+            <div class="embed-option-label">Figma Link</div>
+          </div>
+          <div class="embed-option" onclick="selectEmbed(this, 'upload')">
+            <div class="embed-option-icon">📸</div>
+            <div class="embed-option-label">Screenshots</div>
+          </div>
+        </div>
+        <input class="form-input" type="url" placeholder="Paste your prototype or Figma URL..." id="embed-url">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Loom walkthrough <span style="color:var(--text-tertiary);font-weight:400">(optional)</span></label>
+        <input class="form-input" type="url" placeholder="Paste Loom URL..." id="loom-url">
+        <p class="form-hint">Walk through your thinking — reviewers respond better when they understand the "why".</p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="showView('dashboard')">Cancel</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="runAIVibeCheck()">🤖 AI Vibe Check</button>
+          <button class="btn btn-primary" onclick="goToStep(2)">Next: Questions →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Questions -->
+    <div id="create-step-2" style="display:none" class="animate-in">
+      <div class="form-group">
+        <label class="form-label">Feedback questions</label>
+        <p class="form-hint" style="margin-bottom:16px;margin-top:0">Structure what you want to know. Better questions = better feedback.</p>
+
+        <div class="questions-list" id="questions-list">
+          <div class="question-item">
+            <span class="question-drag">⠿</span>
+            <input class="question-input" value="Does this layout make the key information easy to scan?">
+            <select class="question-type">
+              <option>Text</option>
+              <option>Rating</option>
+              <option>Yes/No</option>
+            </select>
+            <button class="question-remove" onclick="this.parentElement.remove()">×</button>
+          </div>
+          <div class="question-item">
+            <span class="question-drag">⠿</span>
+            <input class="question-input" value="Is anything confusing or unclear?">
+            <select class="question-type">
+              <option>Text</option>
+              <option>Rating</option>
+              <option>Yes/No</option>
+            </select>
+            <button class="question-remove" onclick="this.parentElement.remove()">×</button>
+          </div>
+          <div class="question-item">
+            <span class="question-drag">⠿</span>
+            <input class="question-input" value="How does this compare to the current version?">
+            <select class="question-type">
+              <option>Rating</option>
+              <option>Text</option>
+              <option>Yes/No</option>
+            </select>
+            <button class="question-remove" onclick="this.parentElement.remove()">×</button>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="addQuestion()">+ Add question</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Quick settings</label>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)">
+            Include vibe slider (😍 → 😐)
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)">
+            Allow pin comments on the design
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" style="width:18px;height:18px;accent-color:var(--accent)">
+            Anonymous responses
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer">
+            <input type="checkbox" checked style="width:18px;height:18px;accent-color:var(--accent)">
+            Run AI Vibe Check before sharing
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="goToStep(1)">← Back</button>
+        <button class="btn btn-accent" onclick="publishReview()">Publish & Share →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== REVIEWER VIEW ========== -->
+<div class="view" id="view-reviewer">
+  <!-- Pin mode toggle — fixed to viewport -->
+  <button class="pin-mode-toggle" id="pin-toggle" onclick="togglePinMode()">
+    📌 Pin Mode
+  </button>
+  <div class="reviewer-layout">
+    <!-- Left: Prototype -->
+    <div class="reviewer-prototype" id="prototype-area">
+      <div class="prototype-frame">
+        <!-- Pin overlay — transparent layer for capturing pin clicks -->
+        <div class="pin-overlay" id="pin-overlay" onclick="handlePinClick(event)"></div>
+        <div class="prototype-placeholder" style="background:#f5f5f7;padding:0;gap:0">
+          <!-- Realistic Logistics Dashboard Mockup -->
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;font-family:'Inter',sans-serif;overflow:hidden">
+            <!-- Top Nav Bar -->
+            <div style="background:#1a1a2e;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0">
+              <div style="color:#FF6B35;font-weight:700;font-size:14px;letter-spacing:-0.3px">LogiTrack</div>
+              <div style="display:flex;gap:12px;margin-left:20px">
+                <span style="color:rgba(255,255,255,0.4);font-size:11px;cursor:pointer">Dashboard</span>
+                <span style="color:white;font-size:11px;border-bottom:2px solid #FF6B35;padding-bottom:2px;cursor:pointer">Shipments</span>
+                <span style="color:rgba(255,255,255,0.4);font-size:11px;cursor:pointer">Fleet</span>
+                <span style="color:rgba(255,255,255,0.4);font-size:11px;cursor:pointer">Warehouse</span>
+                <span style="color:rgba(255,255,255,0.4);font-size:11px;cursor:pointer">Analytics</span>
+              </div>
+              <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+                <div style="background:rgba(255,255,255,0.08);border-radius:6px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,0.5);width:180px">Search shipments...</div>
+                <div style="width:24px;height:24px;border-radius:50%;background:#FF6B35;display:flex;align-items:center;justify-content:center;color:white;font-size:9px;font-weight:600">RP</div>
+              </div>
+            </div>
+
+            <!-- Content Area -->
+            <div style="flex:1;display:flex;overflow:hidden">
+              <!-- Sidebar -->
+              <div style="width:200px;background:#fafafa;border-right:1px solid #eee;padding:16px;flex-shrink:0">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#999;margin-bottom:10px;font-weight:600">Filters</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="padding:7px 10px;background:#FF6B35;color:white;border-radius:6px;font-size:11px;font-weight:500">All Shipments</div>
+                  <div style="padding:7px 10px;font-size:11px;color:#666;border-radius:6px;cursor:pointer">In Transit (24)</div>
+                  <div style="padding:7px 10px;font-size:11px;color:#666;border-radius:6px;cursor:pointer">Delivered (156)</div>
+                  <div style="padding:7px 10px;font-size:11px;color:#666;border-radius:6px;cursor:pointer">Delayed (3)</div>
+                  <div style="padding:7px 10px;font-size:11px;color:#666;border-radius:6px;cursor:pointer">Pending (8)</div>
+                </div>
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#999;margin:20px 0 10px;font-weight:600">Carriers</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><input type="checkbox" checked style="accent-color:#FF6B35;width:12px;height:12px"> FedEx</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><input type="checkbox" checked style="accent-color:#FF6B35;width:12px;height:12px"> DHL</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><input type="checkbox" style="accent-color:#FF6B35;width:12px;height:12px"> UPS</label>
+                </div>
+              </div>
+
+              <!-- Main Content -->
+              <div style="flex:1;padding:20px;overflow-y:auto">
+                <!-- Status Cards Row -->
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+                  <div style="background:white;border:1px solid #eee;border-radius:10px;padding:14px">
+                    <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total Active</div>
+                    <div style="font-size:24px;font-weight:700;color:#1a1a1a;letter-spacing:-1px">191</div>
+                    <div style="font-size:10px;color:#2DB67D;font-weight:500;margin-top:2px">+12% vs last week</div>
+                  </div>
+                  <div style="background:white;border:1px solid #eee;border-radius:10px;padding:14px">
+                    <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">In Transit</div>
+                    <div style="font-size:24px;font-weight:700;color:#3B82F6;letter-spacing:-1px">24</div>
+                    <div style="font-size:10px;color:#999;margin-top:2px">3 arriving today</div>
+                  </div>
+                  <div style="background:white;border:1px solid #eee;border-radius:10px;padding:14px">
+                    <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Delayed</div>
+                    <div style="font-size:24px;font-weight:700;color:#EF476F;letter-spacing:-1px">3</div>
+                    <div style="font-size:10px;color:#EF476F;font-weight:500;margin-top:2px">Needs attention</div>
+                  </div>
+                  <div style="background:white;border:1px solid #eee;border-radius:10px;padding:14px">
+                    <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">On-Time Rate</div>
+                    <div style="font-size:24px;font-weight:700;color:#2DB67D;letter-spacing:-1px">96.8%</div>
+                    <div style="font-size:10px;color:#2DB67D;font-weight:500;margin-top:2px">+2.1% vs target</div>
+                  </div>
+                </div>
+
+                <!-- Map + Timeline Row -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+                  <!-- Map -->
+                  <div style="background:white;border:1px solid #eee;border-radius:10px;padding:14px;min-height:160px">
+                    <div style="font-size:12px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+                      <span>Live Tracking Map</span>
+                      <span style="font-size:10px;color:#999;font-weight:400">Real-time</span>
+                    </div>
+                    <div style="background:#e8f0fe;border-radius:8px;height:120px;position:relative;overflow:hidden">
+                      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#dbeafe,#e0e7ff,#dbeafe);opacity:0.8"></div>
+                      <!-- Simplified map dots -->
+                      <div style="position:absolute;top:30%;left:25%;width:8px;height:8px;background:#3B82F6;border-radius:50%;box-shadow:0 0 0 3px rgba(59,130,246,0.2)"></div>
+                      <div style="position:absolute;top:45%;left:55%;width:8px;height:8px;background:#2DB67D;border-radius:50%;box-shadow:0 0 0 3px rgba(45,182,125,0.2)"></div>
+                      <div style="position:absolute;top:25%;left:70%;width:8px;height:8px;background:#EF476F;border-radius:50%;box-shadow:0 0 0 3px rgba(239,71,111,0.2)"></div>
+                      <div style="position:absolute;top:60%;left:40%;width:8px;height:8px;background:#3B82F6;border-radius:50%;box-shadow:0 0 0 3px rgba(59,130,246,0.2)"></div>
+                      <!-- Map lines -->
+                      <svg style="position:absolute;inset:0;width:100%;height:100%">
+                        <line x1="25%" y1="30%" x2="55%" y2="45%" stroke="#3B82F6" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.4"/>
+                        <line x1="55%" y1="45%" x2="70%" y2="25%" stroke="#999" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <!-- Timeline -->
+                  <div style="background:white;border:1px solid #eee;border-radius:10px;padding:14px">
+                    <div style="font-size:12px;font-weight:600;margin-bottom:12px">Shipment Timeline</div>
+                    <div style="display:flex;flex-direction:column;gap:12px">
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:8px;height:8px;border-radius:50%;background:#2DB67D;margin-top:4px;flex-shrink:0"></div>
+                        <div>
+                          <div style="font-size:11px;font-weight:500">SHP-4821 Delivered</div>
+                          <div style="font-size:10px;color:#999">Chicago, IL — 10 min ago</div>
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:8px;height:8px;border-radius:50%;background:#3B82F6;margin-top:4px;flex-shrink:0"></div>
+                        <div>
+                          <div style="font-size:11px;font-weight:500">SHP-4819 In Transit</div>
+                          <div style="font-size:10px;color:#999">Memphis, TN — 25 min ago</div>
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:8px;height:8px;border-radius:50%;background:#EF476F;margin-top:4px;flex-shrink:0"></div>
+                        <div>
+                          <div style="font-size:11px;font-weight:500">SHP-4815 Delayed</div>
+                          <div style="font-size:10px;color:#EF476F">Customs hold — Atlanta, GA</div>
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:10px;align-items:flex-start">
+                        <div style="width:8px;height:8px;border-radius:50%;background:#2DB67D;margin-top:4px;flex-shrink:0"></div>
+                        <div>
+                          <div style="font-size:11px;font-weight:500">SHP-4812 Delivered</div>
+                          <div style="font-size:10px;color:#999">Dallas, TX — 1h ago</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Shipments Table -->
+                <div style="background:white;border:1px solid #eee;border-radius:10px;overflow:hidden">
+                  <div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
+                    <div style="font-size:12px;font-weight:600">Recent Shipments</div>
+                    <div style="display:flex;gap:6px">
+                      <div style="padding:4px 10px;background:#f5f5f5;border-radius:5px;font-size:10px;color:#666;cursor:pointer">Export</div>
+                      <div style="padding:4px 10px;background:#FF6B35;border-radius:5px;font-size:10px;color:white;cursor:pointer">+ New</div>
+                    </div>
+                  </div>
+                  <table style="width:100%;border-collapse:collapse;font-size:11px">
+                    <thead>
+                      <tr style="background:#fafafa;border-bottom:1px solid #eee">
+                        <th style="text-align:left;padding:8px 16px;font-weight:500;color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Shipment</th>
+                        <th style="text-align:left;padding:8px 16px;font-weight:500;color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Origin</th>
+                        <th style="text-align:left;padding:8px 16px;font-weight:500;color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Destination</th>
+                        <th style="text-align:left;padding:8px 16px;font-weight:500;color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">Status</th>
+                        <th style="text-align:left;padding:8px 16px;font-weight:500;color:#999;font-size:10px;text-transform:uppercase;letter-spacing:0.5px">ETA</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom:1px solid #f5f5f5">
+                        <td style="padding:10px 16px;font-weight:500;color:#1a1a1a">SHP-4821</td>
+                        <td style="padding:10px 16px;color:#666">Los Angeles, CA</td>
+                        <td style="padding:10px 16px;color:#666">Chicago, IL</td>
+                        <td style="padding:10px 16px"><span style="background:#E8F8F0;color:#2DB67D;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600">Delivered</span></td>
+                        <td style="padding:10px 16px;color:#999">—</td>
+                      </tr>
+                      <tr style="border-bottom:1px solid #f5f5f5">
+                        <td style="padding:10px 16px;font-weight:500;color:#1a1a1a">SHP-4819</td>
+                        <td style="padding:10px 16px;color:#666">New York, NY</td>
+                        <td style="padding:10px 16px;color:#666">Miami, FL</td>
+                        <td style="padding:10px 16px"><span style="background:#EBF2FF;color:#3B82F6;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600">In Transit</span></td>
+                        <td style="padding:10px 16px;color:#666">Mar 23</td>
+                      </tr>
+                      <tr style="border-bottom:1px solid #f5f5f5">
+                        <td style="padding:10px 16px;font-weight:500;color:#1a1a1a">SHP-4815</td>
+                        <td style="padding:10px 16px;color:#666">Seattle, WA</td>
+                        <td style="padding:10px 16px;color:#666">Atlanta, GA</td>
+                        <td style="padding:10px 16px"><span style="background:#FDE8ED;color:#EF476F;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600">Delayed</span></td>
+                        <td style="padding:10px 16px;color:#EF476F">Overdue</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 16px;font-weight:500;color:#1a1a1a">SHP-4812</td>
+                        <td style="padding:10px 16px;color:#666">Houston, TX</td>
+                        <td style="padding:10px 16px;color:#666">Dallas, TX</td>
+                        <td style="padding:10px 16px"><span style="background:#E8F8F0;color:#2DB67D;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600">Delivered</span></td>
+                        <td style="padding:10px 16px;color:#999">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:500;backdrop-filter:blur(8px);pointer-events:none">
+            📌 Click anywhere to pin a comment
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Feedback Panel -->
+    <div class="reviewer-panel">
+      <div class="panel-header">
+        <h2>Shipment Tracker Redesign</h2>
+        <p>by Robin Powell · Shared 2h ago</p>
+      </div>
+
+      <div class="panel-tabs">
+        <button class="panel-tab active" onclick="switchPanelTab('vibe')">Vibe Check</button>
+        <button class="panel-tab" onclick="switchPanelTab('feedback')">Questions</button>
+        <button class="panel-tab" onclick="switchPanelTab('pins')">Pins <span style="background:var(--accent);color:white;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px">2</span></button>
+        <button class="panel-tab" onclick="switchPanelTab('ai')">AI Check</button>
+      </div>
+
+      <div class="panel-content">
+        <!-- Vibe Check Section -->
+        <div class="panel-section active" id="section-vibe">
+          <div class="vibe-check">
+            <div class="vibe-label">How does this design make you feel?</div>
+            <div class="vibe-emoji" id="vibe-emoji">😊</div>
+            <div class="vibe-slider-container">
+              <input type="range" min="0" max="100" value="70" class="vibe-slider" id="vibe-slider" oninput="updateVibeSlider(this.value)">
+            </div>
+            <div class="vibe-labels">
+              <span>😐 Meh</span>
+              <span>😊 Good</span>
+              <span>😍 Love it</span>
+            </div>
+            <div class="vibe-score-display" id="vibe-score-display">Score: 7.0 / 10</div>
+          </div>
+
+          <div style="margin-top:28px">
+            <label class="form-label">Quick take <span style="color:var(--text-tertiary);font-weight:400">(optional)</span></label>
+            <textarea class="feedback-answer" placeholder="What's your gut reaction? No need to overthink it..." style="min-height:60px"></textarea>
+          </div>
+        </div>
+
+        <!-- Feedback Questions Section -->
+        <div class="panel-section" id="section-feedback">
+          <div class="feedback-section">
+            <div class="feedback-question">
+              <div class="feedback-q-label">
+                <span class="feedback-q-num">1</span>
+                Does this layout make the key information easy to scan?
+              </div>
+              <div class="feedback-rating">
+                <button class="feedback-rating-btn" onclick="selectRating(this)">Not at all</button>
+                <button class="feedback-rating-btn" onclick="selectRating(this)">Somewhat</button>
+                <button class="feedback-rating-btn selected" onclick="selectRating(this)">Yes</button>
+                <button class="feedback-rating-btn" onclick="selectRating(this)">Very much</button>
+              </div>
+            </div>
+
+            <div class="feedback-question">
+              <div class="feedback-q-label">
+                <span class="feedback-q-num">2</span>
+                Is anything confusing or unclear?
+              </div>
+              <textarea class="feedback-answer" placeholder="Type your thoughts..."></textarea>
+            </div>
+
+            <div class="feedback-question">
+              <div class="feedback-q-label">
+                <span class="feedback-q-num">3</span>
+                How does this compare to the current version?
+              </div>
+              <div class="feedback-rating">
+                <button class="feedback-rating-btn" onclick="selectRating(this)">Worse</button>
+                <button class="feedback-rating-btn" onclick="selectRating(this)">Same</button>
+                <button class="feedback-rating-btn" onclick="selectRating(this)">Better</button>
+                <button class="feedback-rating-btn selected" onclick="selectRating(this)">Much better</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pin Comments Section -->
+        <div class="panel-section" id="section-pins">
+          <div class="pin-comment-list">
+            <div class="pin-comment">
+              <div class="pin-num">1</div>
+              <div class="pin-comment-body">
+                <div class="pin-comment-author">Jake Kim</div>
+                <div class="pin-comment-text">Love the timeline view — but could the status labels have more contrast? Hard to read the yellow on white.</div>
+                <div class="pin-comment-time">45 min ago</div>
+              </div>
+            </div>
+            <div class="pin-comment">
+              <div class="pin-num">2</div>
+              <div class="pin-comment-body">
+                <div class="pin-comment-author">Maria Chen</div>
+                <div class="pin-comment-text">The map feels too small at this breakpoint. Can we make it resizable or have a fullscreen toggle?</div>
+                <div class="pin-comment-time">30 min ago</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+            <div class="add-pin-prompt">
+              <span>📌</span>
+              Click anywhere on the design<br>to drop a pin comment
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Vibe Check Section -->
+        <div class="panel-section" id="section-ai">
+          <div class="ai-vibe-section">
+            <div class="ai-vibe-card">
+              <div class="ai-vibe-header">
+                <div class="ai-vibe-icon">✨</div>
+                <div>
+                  <div class="ai-vibe-title">AI Design Review</div>
+                  <div class="ai-vibe-subtitle">Pre-share analysis · Ran just now</div>
+                </div>
+              </div>
+
+              <div class="ai-analysis-item">
+                <div class="ai-analysis-score score-high">8.5</div>
+                <div class="ai-analysis-content">
+                  <div class="ai-analysis-label">Visual Hierarchy</div>
+                  <div class="ai-analysis-text">Strong hierarchy — key metrics are prominent, and the timeline draws the eye naturally. Status indicators are well-differentiated.</div>
+                </div>
+              </div>
+
+              <div class="ai-analysis-item">
+                <div class="ai-analysis-score score-mid">6.8</div>
+                <div class="ai-analysis-content">
+                  <div class="ai-analysis-label">Accessibility</div>
+                  <div class="ai-analysis-text">Some contrast issues with status labels on light backgrounds. Yellow (#FFBE0B) on white fails WCAG AA. Consider darker alternatives.</div>
+                </div>
+              </div>
+
+              <div class="ai-analysis-item">
+                <div class="ai-analysis-score score-high">9.0</div>
+                <div class="ai-analysis-content">
+                  <div class="ai-analysis-label">Consistency</div>
+                  <div class="ai-analysis-text">Aligns well with the existing design system. Spacing, typography, and component usage are consistent throughout.</div>
+                </div>
+              </div>
+
+              <div class="ai-analysis-item">
+                <div class="ai-analysis-score score-high">7.8</div>
+                <div class="ai-analysis-content">
+                  <div class="ai-analysis-label">Usability</div>
+                  <div class="ai-analysis-text">Clear navigation and logical grouping. The real-time map is a strong addition. Consider adding a quick-action bar for frequent tasks.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Designer-only suggestions (hidden for reviewers) -->
+            <div class="designer-only" id="ai-suggestions">
+              <div style="font-size:13px;font-weight:600;margin-bottom:12px">Suggestions</div>
+
+              <div class="ai-suggestion">
+                <span class="ai-suggestion-icon">🎨</span>
+                <div>Swap status yellow (#FFBE0B) for a darker amber (#C59400) to pass accessibility contrast checks.</div>
+              </div>
+
+              <div class="ai-suggestion">
+                <span class="ai-suggestion-icon">📐</span>
+                <div>The map component could benefit from a resize handle or fullscreen toggle — especially for ops teams on smaller screens.</div>
+              </div>
+
+              <div class="ai-suggestion">
+                <span class="ai-suggestion-icon">⚡</span>
+                <div>Consider adding keyboard shortcuts for status changes — your power users will thank you.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit bar -->
+      <div style="padding:16px 24px;border-top:1px solid var(--border);background:var(--bg-card)">
+        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="submitFeedback()">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== RESULTS VIEW ========== -->
+<div class="view" id="view-results">
+  <div class="container">
+    <div class="results-header animate-in">
+      <div>
+        <h1>Shipment Tracker Redesign — Results</h1>
+        <p style="color:var(--text-secondary);font-size:14px;margin-top:4px">5 responses · Closed 2 days ago</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm">Export</button>
+        <button class="btn btn-secondary btn-sm">Share Results</button>
+      </div>
+    </div>
+
+    <div class="results-overview animate-in">
+      <div class="results-vibe-summary">
+        <div class="results-vibe-score" style="color:var(--green)">7.8</div>
+        <div class="results-vibe-label">Average Vibe Score</div>
+
+        <div class="results-vibe-breakdown">
+          <div class="vibe-breakdown-row">
+            <span class="vibe-breakdown-emoji">😍</span>
+            <div class="vibe-breakdown-bar">
+              <div class="vibe-breakdown-fill" style="width:40%;background:var(--green)"></div>
+            </div>
+            <span class="vibe-breakdown-count">2</span>
+          </div>
+          <div class="vibe-breakdown-row">
+            <span class="vibe-breakdown-emoji">😊</span>
+            <div class="vibe-breakdown-bar">
+              <div class="vibe-breakdown-fill" style="width:40%;background:var(--blue)"></div>
+            </div>
+            <span class="vibe-breakdown-count">2</span>
+          </div>
+          <div class="vibe-breakdown-row">
+            <span class="vibe-breakdown-emoji">🙂</span>
+            <div class="vibe-breakdown-bar">
+              <div class="vibe-breakdown-fill" style="width:20%;background:var(--yellow)"></div>
+            </div>
+            <span class="vibe-breakdown-count">1</span>
+          </div>
+          <div class="vibe-breakdown-row">
+            <span class="vibe-breakdown-emoji">😐</span>
+            <div class="vibe-breakdown-bar">
+              <div class="vibe-breakdown-fill" style="width:0%"></div>
+            </div>
+            <span class="vibe-breakdown-count">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-responses">
+        <h3>Responses</h3>
+
+        <div class="response-item">
+          <div class="response-author">
+            <div class="response-avatar" style="background:#3B82F6">JK</div>
+            <span class="response-name">Jake Kim</span>
+            <span class="response-vibe">😍 9.2</span>
+          </div>
+          <div class="response-answers">
+            <div>
+              <div class="response-answer-q">Does this layout make the key information easy to scan?</div>
+              <div class="response-answer-a">Very much — the hierarchy is clear. I can see shipment status at a glance without digging.</div>
+            </div>
+            <div>
+              <div class="response-answer-q">Is anything confusing or unclear?</div>
+              <div class="response-answer-a">The yellow status labels are hard to read. Otherwise it's clear.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="response-item">
+          <div class="response-author">
+            <div class="response-avatar" style="background:#8B5CF6">MC</div>
+            <span class="response-name">Maria Chen</span>
+            <span class="response-vibe">😊 7.5</span>
+          </div>
+          <div class="response-answers">
+            <div>
+              <div class="response-answer-q">Does this layout make the key information easy to scan?</div>
+              <div class="response-answer-a">Yes, big improvement over current. The timeline view is a game-changer for tracking multi-stop shipments.</div>
+            </div>
+            <div>
+              <div class="response-answer-q">Is anything confusing or unclear?</div>
+              <div class="response-answer-a">Map feels too small. Would love a fullscreen toggle or at least a way to resize it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="response-item">
+          <div class="response-author">
+            <div class="response-avatar" style="background:#EC4899">AS</div>
+            <span class="response-name">Alex Santos</span>
+            <span class="response-vibe">😍 8.8</span>
+          </div>
+          <div class="response-answers">
+            <div>
+              <div class="response-answer-q">Does this layout make the key information easy to scan?</div>
+              <div class="response-answer-a">Yes. The grouped status cards at the top are exactly what our ops team needs.</div>
+            </div>
+            <div>
+              <div class="response-answer-q">How does this compare to the current version?</div>
+              <div class="response-answer-a">Much better. Night and day difference. The current one feels like a spreadsheet.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="response-item">
+          <div class="response-author">
+            <div class="response-avatar" style="background:#F59E0B">DL</div>
+            <span class="response-name">Dan Lee (Boss)</span>
+            <span class="response-vibe">😊 7.0</span>
+          </div>
+          <div class="response-answers">
+            <div>
+              <div class="response-answer-q">Does this layout make the key information easy to scan?</div>
+              <div class="response-answer-a">Mostly yes. I'd want to see how it looks with real data — some of our shipments have 20+ stops.</div>
+            </div>
+            <div>
+              <div class="response-answer-q">How does this compare to the current version?</div>
+              <div class="response-answer-a">Better. Ship it.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="response-item">
+          <div class="response-author">
+            <div class="response-avatar" style="background:#10B981">RP</div>
+            <span class="response-name">Rachel Park</span>
+            <span class="response-vibe">🙂 6.5</span>
+          </div>
+          <div class="response-answers">
+            <div>
+              <div class="response-answer-q">Is anything confusing or unclear?</div>
+              <div class="response-answer-a">The filter system isn't obvious — I didn't realize I could filter by carrier until I scrolled right. Maybe surface the most-used filters.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Summary of Results -->
+    <div class="ai-vibe-card animate-in" style="margin-top:8px">
+      <div class="ai-vibe-header">
+        <div class="ai-vibe-icon">✨</div>
+        <div>
+          <div class="ai-vibe-title">AI Feedback Summary</div>
+          <div class="ai-vibe-subtitle">Synthesized from 5 responses</div>
+        </div>
+      </div>
+
+      <div style="font-size:14px;line-height:1.7;color:var(--text-secondary)">
+        <p style="margin-bottom:12px"><strong style="color:var(--text-primary)">Overall sentiment: Positive.</strong> Reviewers are excited about the redesign, especially the timeline view and improved hierarchy. The consensus is this is a significant upgrade over the current version.</p>
+
+        <p style="margin-bottom:12px"><strong style="color:var(--text-primary)">Key themes:</strong></p>
+        <ul style="margin-left:20px;margin-bottom:12px">
+          <li>✅ Visual hierarchy and scannability are strong</li>
+          <li>✅ Timeline view is the standout feature</li>
+          <li>⚠️ Yellow status labels need better contrast (mentioned by 2 reviewers)</li>
+          <li>⚠️ Map needs resize/fullscreen option (mentioned by 2 reviewers)</li>
+          <li>💡 Filter system could be more discoverable</li>
+          <li>💡 Test with real data — edge cases with 20+ stops</li>
+        </ul>
+
+        <p><strong style="color:var(--text-primary)">Recommended actions:</strong> Fix contrast, add map resize, surface filters — then ship. No blockers.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SHARE MODAL ========== -->
+<div class="modal-overlay" id="share-modal">
+  <div class="modal">
+    <h2>Share your review</h2>
+    <p>Anyone with this link can view the design and leave feedback.</p>
+
+    <div class="share-link-box">
+      <input class="share-link-input" value="https://reviewbridge.app/r/shipment-tracker-v2" readonly id="share-link">
+      <button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copy</button>
+    </div>
+
+    <div>
+      <label class="form-label">Invite reviewers by email</label>
+      <div class="invite-row">
+        <input class="form-input" type="email" placeholder="email@company.com" style="flex:1">
+        <button class="btn btn-secondary btn-sm">Send</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeShareModal()">Close</button>
+      <button class="btn btn-accent" onclick="previewAsReviewer()">Preview as Reviewer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ========== REVIEW DATA STORE (localStorage) ==========
+  let currentEmbedType = 'prototype';
+
+  function getReviews() {
+    return JSON.parse(localStorage.getItem('reviewbridge_reviews') || '[]');
+  }
+
+  function saveReview(review) {
+    const reviews = getReviews();
+    reviews.unshift(review);
+    localStorage.setItem('reviewbridge_reviews', JSON.stringify(reviews));
+    return review;
+  }
+
+  function getReviewById(id) {
+    return getReviews().find(r => r.id === id);
+  }
+
+  function generateId() {
+    return 'rv_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 6);
+  }
+
+  // ========== FIGMA / URL EMBED LOGIC ==========
+  function convertToEmbedUrl(url, type) {
+    if (!url) return null;
+
+    // Figma URLs → embed
+    if (type === 'figma' || url.includes('figma.com')) {
+      // Handle figma.com/file/, figma.com/design/, figma.com/proto/
+      let figmaUrl = url.trim();
+      // If it's already an embed URL, return as-is
+      if (figmaUrl.includes('figma.com/embed')) return figmaUrl;
+      // Convert to embed
+      const encodedUrl = encodeURIComponent(figmaUrl);
+      return `https://www.figma.com/embed?embed_host=reviewbridge&url=${encodedUrl}`;
+    }
+
+    // Regular prototype URLs — embed directly
+    if (type === 'prototype' || type === 'upload') {
+      return url.trim();
+    }
+
+    return url.trim();
+  }
+
+  function loadPrototypeInReviewer(review) {
+    const frame = document.querySelector('.prototype-frame');
+    const title = document.querySelector('.panel-header h2');
+    const subtitle = document.querySelector('.panel-header p');
+
+    // Update header
+    title.textContent = review.title || 'Untitled Review';
+    const timeAgo = review.createdAt ? getTimeAgo(review.createdAt) : 'just now';
+    subtitle.textContent = `by Robin Powell · Shared ${timeAgo}`;
+
+    // Load the embed — preserve the pin overlay
+    const embedUrl = convertToEmbedUrl(review.embedUrl, review.embedType);
+
+    // Remove old iframe/content but keep the overlay
+    frame.querySelectorAll('iframe, .loom-banner, .prototype-placeholder').forEach(el => el.remove());
+
+    if (embedUrl) {
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;inset:0';
+      iframe.allowFullscreen = true;
+      frame.insertBefore(iframe, frame.firstChild);
+    }
+
+    // Remove old loom banner
+    frame.querySelectorAll('.loom-banner').forEach(el => el.remove());
+
+    // Add Loom banner if provided
+    if (review.loomUrl) {
+      const loomBanner = document.createElement('div');
+      loomBanner.className = 'loom-banner';
+      loomBanner.style.cssText = 'position:absolute;top:12px;left:12px;z-index:20';
+      loomBanner.innerHTML = `
+        <a href="${review.loomUrl}" target="_blank" class="btn btn-sm" style="background:rgba(0,0,0,0.7);color:white;backdrop-filter:blur(8px);text-decoration:none;font-size:12px">
+          🎥 Watch Loom walkthrough
+        </a>
+      `;
+      frame.appendChild(loomBanner);
+    }
+
+    // Update questions in the feedback panel
+    loadQuestionsInPanel(review.questions || []);
+
+    // Clear existing pins from frame
+    frame.querySelectorAll('.pin-marker').forEach(p => p.remove());
+    const pinList = document.querySelector('.pin-comment-list');
+    pinList.innerHTML = '';
+    pinCount = 0;
+
+    // Reset pin mode
+    pinModeActive = false;
+    const overlay = document.getElementById('pin-overlay');
+    const toggle = document.getElementById('pin-toggle');
+    if (overlay) overlay.classList.remove('pin-mode');
+    if (toggle) {
+      toggle.classList.remove('active');
+      toggle.innerHTML = '📌 Pin Mode';
+    }
+  }
+
+  function convertLoomUrl(url) {
+    if (!url) return null;
+    // Convert loom.com/share/ to loom.com/embed/
+    return url.replace('loom.com/share/', 'loom.com/embed/');
+  }
+
+  function loadQuestionsInPanel(questions) {
+    const section = document.getElementById('section-feedback');
+    if (!questions || questions.length === 0) return;
+
+    let html = '<div class="feedback-section">';
+    questions.forEach((q, i) => {
+      const type = q.type || 'Text';
+      html += `<div class="feedback-question">
+        <div class="feedback-q-label">
+          <span class="feedback-q-num">${i + 1}</span>
+          ${q.text}
+        </div>`;
+
+      if (type === 'Rating') {
+        html += `<div class="feedback-rating">
+          <button class="feedback-rating-btn" onclick="selectRating(this)">Not at all</button>
+          <button class="feedback-rating-btn" onclick="selectRating(this)">Somewhat</button>
+          <button class="feedback-rating-btn" onclick="selectRating(this)">Yes</button>
+          <button class="feedback-rating-btn" onclick="selectRating(this)">Very much</button>
+        </div>`;
+      } else if (type === 'Yes/No') {
+        html += `<div class="feedback-rating">
+          <button class="feedback-rating-btn" onclick="selectRating(this)">Yes</button>
+          <button class="feedback-rating-btn" onclick="selectRating(this)">No</button>
+        </div>`;
+      } else {
+        html += `<textarea class="feedback-answer" placeholder="Type your thoughts..."></textarea>`;
+      }
+
+      html += '</div>';
+    });
+    html += '</div>';
+    section.innerHTML = html;
+  }
+
+  // ========== VIEW MANAGEMENT ==========
+  function showView(viewId) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.nav-tab[data-view="${viewId}"]`)?.classList.add('active');
+    window.scrollTo(0, 0);
+
+    // Update URL hash without triggering hashchange
+    if (viewId !== 'dashboard') {
+      history.replaceState(null, '', '#' + viewId);
+    } else {
+      history.replaceState(null, '', window.location.pathname);
+    }
+  }
+
+  // ========== CREATE STEPS ==========
+  function goToStep(step) {
+    document.getElementById('create-step-1').style.display = step === 1 ? 'block' : 'none';
+    document.getElementById('create-step-2').style.display = step === 2 ? 'block' : 'none';
+
+    const s1 = document.getElementById('step-1-indicator');
+    const s2 = document.getElementById('step-2-indicator');
+    const s3 = document.getElementById('step-3-indicator');
+
+    s1.className = step === 1 ? 'create-step active' : 'create-step done';
+    s2.className = step === 2 ? 'create-step active' : 'create-step';
+    s3.className = 'create-step';
+  }
+
+  // ========== EMBED OPTIONS ==========
+  function selectEmbed(el, type) {
+    currentEmbedType = type;
+    document.querySelectorAll('.embed-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    const input = document.getElementById('embed-url');
+    if (type === 'prototype') input.placeholder = 'Paste your prototype URL...';
+    else if (type === 'figma') input.placeholder = 'Paste Figma link (e.g. figma.com/file/... or figma.com/design/...)';
+    else input.placeholder = 'Upload screenshots...';
+  }
+
+  // ========== ADD QUESTION ==========
+  function addQuestion() {
+    const list = document.getElementById('questions-list');
+    const item = document.createElement('div');
+    item.className = 'question-item';
+    item.innerHTML = `
+      <span class="question-drag">⠿</span>
+      <input class="question-input" placeholder="Type your question..." autofocus>
+      <select class="question-type">
+        <option>Text</option>
+        <option>Rating</option>
+        <option>Yes/No</option>
+      </select>
+      <button class="question-remove" onclick="this.parentElement.remove()">×</button>
+    `;
+    list.appendChild(item);
+    item.querySelector('.question-input').focus();
+  }
+
+  // ========== GATHER FORM DATA ==========
+  function gatherReviewData() {
+    const title = document.getElementById('review-title').value || 'Untitled Review';
+    const context = document.getElementById('review-context').value || '';
+    const embedUrl = document.getElementById('embed-url').value || '';
+    const loomUrl = document.getElementById('loom-url').value || '';
+
+    // Gather questions
+    const questionEls = document.querySelectorAll('#questions-list .question-item');
+    const questions = [];
+    questionEls.forEach(q => {
+      const text = q.querySelector('.question-input').value;
+      const type = q.querySelector('.question-type').value;
+      if (text.trim()) {
+        questions.push({ text, type });
+      }
+    });
+
+    return {
+      id: generateId(),
+      title,
+      context,
+      embedUrl,
+      embedType: currentEmbedType,
+      loomUrl,
+      questions,
+      createdAt: new Date().toISOString(),
+      status: 'active',
+      responses: []
+    };
+  }
+
+  // ========== VIBE SLIDER ==========
+  function updateVibeSlider(value) {
+    const emoji = document.getElementById('vibe-emoji');
+    const score = document.getElementById('vibe-score-display');
+    const slider = document.getElementById('vibe-slider');
+    const val = parseInt(value);
+    const scoreNum = (val / 10).toFixed(1);
+
+    if (val <= 15) { emoji.textContent = '😐'; }
+    else if (val <= 30) { emoji.textContent = '😕'; }
+    else if (val <= 45) { emoji.textContent = '🙂'; }
+    else if (val <= 60) { emoji.textContent = '😊'; }
+    else if (val <= 75) { emoji.textContent = '😄'; }
+    else if (val <= 90) { emoji.textContent = '🤩'; }
+    else { emoji.textContent = '😍'; }
+
+    const hue = (val / 100) * 120;
+    const sat = 70 + (val / 100) * 20;
+    slider.style.background = `linear-gradient(90deg,
+      hsl(0, 0%, 85%) 0%,
+      hsl(${hue}, ${sat}%, 55%) ${val}%,
+      hsl(0, 0%, 92%) ${val}%)`;
+
+    score.textContent = `Score: ${scoreNum} / 10`;
+
+    emoji.style.transform = 'scale(1.15)';
+    setTimeout(() => emoji.style.transform = 'scale(1)', 150);
+  }
+
+  updateVibeSlider(70);
+
+  // ========== FEEDBACK RATINGS ==========
+  function selectRating(btn) {
+    btn.parentElement.querySelectorAll('.feedback-rating-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  // ========== PANEL TABS ==========
+  function switchPanelTab(tab) {
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('section-' + tab).classList.add('active');
+  }
+
+  function switchPanelTabDirect(tab) {
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.panel-tab:nth-child(${tab === 'vibe' ? 1 : tab === 'feedback' ? 2 : tab === 'pins' ? 3 : 4})`).classList.add('active');
+    document.getElementById('section-' + tab).classList.add('active');
+  }
+
+  // ========== PIN MODE & COMMENTS ==========
+  let pinCount = 0;
+  let pinModeActive = false;
+
+  function togglePinMode() {
+    pinModeActive = !pinModeActive;
+    const overlay = document.getElementById('pin-overlay');
+    const toggle = document.getElementById('pin-toggle');
+
+    if (pinModeActive) {
+      overlay.classList.add('pin-mode');
+      toggle.classList.add('active');
+      toggle.innerHTML = '📌 Pin Mode — Click to place · <span style="opacity:0.7;font-weight:400">ESC to exit</span>';
+      showToast('Pin mode ON — click anywhere on the design to drop a pin');
+    } else {
+      overlay.classList.remove('pin-mode');
+      toggle.classList.remove('active');
+      toggle.innerHTML = '📌 Pin Mode';
+    }
+  }
+
+  // ESC to exit pin mode
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && pinModeActive) {
+      togglePinMode();
+    }
+  });
+
+  function handlePinClick(e) {
+    if (!pinModeActive) return;
+    e.stopPropagation();
+
+    const frame = document.querySelector('.prototype-frame');
+    const rect = frame.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    pinCount++;
+    const pin = document.createElement('div');
+    pin.className = 'pin-marker';
+    pin.style.left = x + '%';
+    pin.style.top = y + '%';
+    pin.style.zIndex = '10';
+    pin.innerHTML = `<span>${pinCount}</span>`;
+    frame.appendChild(pin);
+
+    switchPanelTabDirect('pins');
+
+    const list = document.querySelector('.pin-comment-list');
+    const comment = document.createElement('div');
+    comment.className = 'pin-comment';
+    comment.innerHTML = `
+      <div class="pin-num">${pinCount}</div>
+      <div class="pin-comment-body" style="flex:1">
+        <textarea class="feedback-answer" placeholder="What's your thought about this area?" style="min-height:50px;font-size:13px" autofocus></textarea>
+      </div>
+    `;
+    list.appendChild(comment);
+    comment.querySelector('textarea').focus();
+  }
+
+  // ========== PUBLISH REVIEW ==========
+  function publishReview() {
+    const review = gatherReviewData();
+    saveReview(review);
+
+    // Generate the share link — same page with review ID in hash
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?review=${review.id}#reviewer`;
+    document.getElementById('share-link').value = shareUrl;
+
+    // Store current review for the session
+    window._currentReview = review;
+
+    document.getElementById('share-modal').classList.add('active');
+    showToast('✓ Review published!');
+    renderDashboardCards();
+  }
+
+  function closeShareModal() {
+    document.getElementById('share-modal').classList.remove('active');
+  }
+
+  // ========== COPY LINK ==========
+  function copyShareLink() {
+    const input = document.getElementById('share-link');
+    const text = input.value;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopiedToast();
+      }).catch(() => {
+        fallbackCopy(input);
+      });
+    } else {
+      fallbackCopy(input);
+    }
+  }
+
+  function fallbackCopy(input) {
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    showCopiedToast();
+  }
+
+  function showCopiedToast() {
+    const toast = document.getElementById('copiedToast');
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+  }
+
+  // ========== SUBMIT FEEDBACK ==========
+  function submitFeedback() {
+    const review = window._currentReview;
+    if (!review) {
+      showToast('✓ Feedback submitted — Robin will be notified');
+      setTimeout(() => showView('results'), 1500);
+      return;
+    }
+
+    // Gather vibe score
+    const vibeVal = parseInt(document.getElementById('vibe-slider').value);
+    const vibeScore = (vibeVal / 10).toFixed(1);
+    const quickTake = document.querySelector('#section-vibe textarea')?.value || '';
+
+    // Gather question answers
+    const answers = [];
+    document.querySelectorAll('#section-feedback .feedback-question').forEach((q, i) => {
+      const label = q.querySelector('.feedback-q-label')?.textContent?.trim() || '';
+      const textarea = q.querySelector('.feedback-answer');
+      const selectedBtn = q.querySelector('.feedback-rating-btn.selected');
+      answers.push({
+        question: label,
+        answer: textarea ? textarea.value : (selectedBtn ? selectedBtn.textContent : '')
+      });
+    });
+
+    // Gather pin comments
+    const pins = [];
+    document.querySelectorAll('.pin-comment-list .pin-comment').forEach(p => {
+      const num = p.querySelector('.pin-num')?.textContent || '';
+      const text = p.querySelector('textarea')?.value || p.querySelector('.pin-comment-text')?.textContent || '';
+      if (text.trim()) pins.push({ pin: num, comment: text });
+    });
+
+    const response = {
+      id: 'resp_' + Date.now().toString(36),
+      reviewId: review.id,
+      reviewer: 'Reviewer',
+      vibeScore: parseFloat(vibeScore),
+      quickTake,
+      answers,
+      pins,
+      submittedAt: new Date().toISOString()
+    };
+
+    // Save response to the review
+    const reviews = getReviews();
+    const idx = reviews.findIndex(r => r.id === review.id);
+    if (idx !== -1) {
+      if (!reviews[idx].responses) reviews[idx].responses = [];
+      reviews[idx].responses.push(response);
+      localStorage.setItem('reviewbridge_reviews', JSON.stringify(reviews));
+    }
+
+    // Also save to a separate responses store for easy access
+    const allResponses = JSON.parse(localStorage.getItem('reviewbridge_responses') || '[]');
+    allResponses.push(response);
+    localStorage.setItem('reviewbridge_responses', JSON.stringify(allResponses));
+
+    showToast('✓ Feedback submitted and saved!');
+    setTimeout(() => {
+      loadResultsView(review.id);
+      showView('results');
+    }, 1200);
+  }
+
+  // ========== LOAD RESULTS VIEW ==========
+  function loadResultsView(reviewId) {
+    const reviews = getReviews();
+    const review = reviews.find(r => r.id === reviewId);
+    if (!review || !review.responses || review.responses.length === 0) return;
+
+    const resultsHeader = document.querySelector('.results-header h1');
+    const resultsSubtitle = document.querySelector('.results-header p');
+    if (resultsHeader) resultsHeader.textContent = `${review.title} — Results`;
+    if (resultsSubtitle) resultsSubtitle.textContent = `${review.responses.length} response(s) · ${getTimeAgo(review.createdAt)}`;
+
+    // Update vibe score
+    const scores = review.responses.map(r => r.vibeScore);
+    const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+    const vibeScoreEl = document.querySelector('.results-vibe-score');
+    if (vibeScoreEl) {
+      vibeScoreEl.textContent = avgScore;
+      vibeScoreEl.style.color = avgScore >= 7 ? 'var(--green)' : avgScore >= 5 ? 'var(--yellow)' : 'var(--red)';
+    }
+
+    // Update responses list
+    const responsesContainer = document.querySelector('.results-responses');
+    if (responsesContainer && review.responses.length > 0) {
+      const colors = ['#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#6366F1'];
+      let html = `<h3>Responses</h3>`;
+      review.responses.forEach((resp, i) => {
+        const color = colors[i % colors.length];
+        const initials = (resp.reviewer || 'R').substring(0, 2).toUpperCase();
+        const emoji = resp.vibeScore >= 8 ? '😍' : resp.vibeScore >= 6 ? '😊' : resp.vibeScore >= 4 ? '🙂' : '😐';
+        html += `
+          <div class="response-item">
+            <div class="response-author">
+              <div class="response-avatar" style="background:${color}">${initials}</div>
+              <span class="response-name">${resp.reviewer}</span>
+              <span class="response-vibe">${emoji} ${resp.vibeScore}</span>
+            </div>
+            <div class="response-answers">
+              ${resp.quickTake ? `<div><div class="response-answer-q">Quick take</div><div class="response-answer-a">${resp.quickTake}</div></div>` : ''}
+              ${resp.answers.filter(a => a.answer).map(a => `
+                <div>
+                  <div class="response-answer-q">${a.question}</div>
+                  <div class="response-answer-a">${a.answer}</div>
+                </div>
+              `).join('')}
+              ${resp.pins.length > 0 ? `<div><div class="response-answer-q">Pin comments</div>${resp.pins.map(p => `<div class="response-answer-a">📌 #${p.pin}: ${p.comment}</div>`).join('')}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+      responsesContainer.innerHTML = html;
+    }
+  }
+
+  // ========== AI VIBE CHECK ==========
+  function runAIVibeCheck() {
+    // Load the current form data into reviewer
+    const review = gatherReviewData();
+    window._currentReview = review;
+    loadPrototypeInReviewer(review);
+    showView('reviewer');
+    switchPanelTabDirect('ai');
+    showToast('✨ AI Vibe Check complete');
+  }
+
+  // ========== TOAST ==========
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('active');
+    setTimeout(() => toast.classList.remove('active'), 3000);
+  }
+
+  // ========== DASHBOARD CARD RENDERING ==========
+  // ========== SEED DEMO DATA (first load only) ==========
+  function seedDemoData() {
+    if (localStorage.getItem('reviewbridge_seeded')) return;
+
+    const demoReviews = [
+      {
+        id: 'demo_shipment',
+        title: 'Shipment Tracker Redesign',
+        context: 'Reworked the shipment tracking dashboard — new timeline view, better status indicators, and real-time map.',
+        embedUrl: '',
+        embedType: 'prototype',
+        loomUrl: '',
+        questions: [
+          { text: 'Does this layout make the key information easy to scan?', type: 'Rating' },
+          { text: 'Is anything confusing or unclear?', type: 'Text' },
+          { text: 'How does this compare to the current version?', type: 'Rating' }
+        ],
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        responses: [
+          { id: 'r1', reviewer: 'Jake Kim', vibeScore: 9.2, quickTake: 'Love the new timeline view', answers: [{ question: 'Easy to scan?', answer: 'Very much' }], pins: [], submittedAt: new Date(Date.now() - 45 * 60000).toISOString() },
+          { id: 'r2', reviewer: 'Maria Chen', vibeScore: 7.5, quickTake: 'Big improvement, map needs work', answers: [{ question: 'Easy to scan?', answer: 'Yes' }], pins: [], submittedAt: new Date(Date.now() - 30 * 60000).toISOString() },
+          { id: 'r3', reviewer: 'Alex Santos', vibeScore: 8.8, quickTake: 'Ship it', answers: [], pins: [], submittedAt: new Date(Date.now() - 20 * 60000).toISOString() }
+        ]
+      },
+      {
+        id: 'demo_website',
+        title: 'Website Hero Section',
+        context: 'New hero section for the marketing site rebrand. Two variations — dark and light themes with animated elements.',
+        embedUrl: '',
+        embedType: 'figma',
+        loomUrl: '',
+        questions: [
+          { text: 'Which variation do you prefer — dark or light?', type: 'Text' },
+          { text: 'Does this feel on-brand?', type: 'Rating' }
+        ],
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        responses: [
+          { id: 'r4', reviewer: 'Dan Lee', vibeScore: 9.0, quickTake: 'Dark theme is fire', answers: [{ question: 'Which variation?', answer: 'Dark, 100%' }], pins: [], submittedAt: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString() },
+          { id: 'r5', reviewer: 'Robin Powell', vibeScore: 9.4, quickTake: '', answers: [], pins: [], submittedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString() }
+        ]
+      },
+      {
+        id: 'demo_analytics',
+        title: 'Analytics Dashboard v2',
+        context: 'Early wireframes for the new analytics module. Needs feedback on data hierarchy and chart types.',
+        embedUrl: '',
+        embedType: 'figma',
+        loomUrl: '',
+        questions: [
+          { text: 'Is the data hierarchy clear?', type: 'Rating' },
+          { text: 'Any chart types you think would work better?', type: 'Text' }
+        ],
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        responses: []
+      },
+      {
+        id: 'demo_onboarding',
+        title: 'Onboarding Flow',
+        context: 'Three-step onboarding for new warehouse managers. Feedback collected and implemented — shipping next sprint.',
+        embedUrl: '',
+        embedType: 'prototype',
+        loomUrl: '',
+        questions: [],
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'closed',
+        responses: [
+          { id: 'r6', reviewer: 'Tom M', vibeScore: 8.0, quickTake: 'Clean flow', answers: [], pins: [], submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+          { id: 'r7', reviewer: 'Lisa W', vibeScore: 8.5, quickTake: 'Step 2 could be clearer', answers: [], pins: [], submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+          { id: 'r8', reviewer: 'Ben G', vibeScore: 9.0, quickTake: '', answers: [], pins: [], submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+          { id: 'r9', reviewer: 'Nora K', vibeScore: 8.5, quickTake: 'Great improvement', answers: [], pins: [], submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() }
+        ]
+      }
+    ];
+
+    localStorage.setItem('reviewbridge_reviews', JSON.stringify(demoReviews));
+    localStorage.setItem('reviewbridge_seeded', 'true');
+  }
+
+  function renderDashboardCards() {
+    const reviews = getReviews();
+    const grid = document.getElementById('review-grid');
+    const archivedGrid = document.getElementById('archived-grid');
+
+    grid.innerHTML = '';
+    archivedGrid.innerHTML = '';
+
+    const activeReviews = reviews.filter(r => r.status !== 'closed');
+    const closedReviews = reviews.filter(r => r.status === 'closed');
+
+    // Render active reviews
+    if (activeReviews.length > 0) {
+      grid.innerHTML = activeReviews.map(r => buildReviewCard(r, false)).join('');
+    } else {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-state-icon">📋</div>
+          <h3>No active reviews</h3>
+          <p>Create your first review to start collecting feedback.</p>
+          <button class="btn btn-primary" onclick="showView('create')">+ New Review</button>
+        </div>
+      `;
+    }
+
+    // Render archived reviews
+    if (closedReviews.length > 0) {
+      archivedGrid.innerHTML = closedReviews.map(r => buildReviewCard(r, true)).join('');
+    }
+
+    // Update archived count & toggle visibility
+    const archivedCount = document.getElementById('archived-count');
+    if (archivedCount) archivedCount.textContent = `(${closedReviews.length})`;
+
+    const archivedToggle = document.getElementById('archived-toggle');
+    if (archivedToggle) archivedToggle.style.display = closedReviews.length > 0 ? 'flex' : 'none';
+
+    // Update stats
+    const statValues = document.querySelectorAll('.stat-value');
+    if (statValues.length >= 4) {
+      statValues[0].textContent = activeReviews.length;
+      const totalResponses = reviews.reduce((sum, r) => sum + (r.responses || []).length, 0);
+      statValues[1].textContent = totalResponses;
+      const allScores = reviews.flatMap(r => (r.responses || []).map(x => x.vibeScore)).filter(Boolean);
+      statValues[2].textContent = allScores.length > 0 ? (allScores.reduce((a,b) => a+b, 0) / allScores.length).toFixed(1) : '—';
+    }
+  }
+
+  function buildReviewCard(r, isArchived) {
+    const timeAgo = getTimeAgo(r.createdAt);
+    const icon = r.embedType === 'figma' ? '🎨' : r.embedType === 'prototype' ? '🔗' : '📸';
+    const responseCount = (r.responses || []).length;
+    const scores = (r.responses || []).map(x => x.vibeScore).filter(Boolean);
+    const avgScore = scores.length > 0 ? (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1) : null;
+    const vibeWidth = avgScore ? (avgScore / 10 * 100) : 0;
+    const vibeColor = avgScore >= 7 ? 'var(--green)' : avgScore >= 5 ? 'var(--yellow)' : avgScore ? 'var(--red)' : 'var(--text-tertiary)';
+    const badgeClass = isArchived ? 'badge-closed' : 'badge-active';
+    const badgeText = isArchived ? 'Closed' : 'Active';
+
+    return `
+      <div class="review-card" data-real="true" onclick="openReview('${r.id}')">
+        <div class="review-card-preview">
+          <div class="review-card-preview-placeholder">${icon}</div>
+          <span class="review-card-badge ${badgeClass}">${badgeText}</span>
+          <div class="review-card-actions" onclick="event.stopPropagation()">
+            ${isArchived
+              ? `<button class="card-action-btn card-action-close" onclick="reopenReview('${r.id}')" title="Reopen">↩</button>`
+              : `<button class="card-action-btn card-action-close" onclick="closeReview('${r.id}')" title="Close & archive">✓</button>`
+            }
+            <button class="card-action-btn card-action-delete" onclick="confirmDeleteReview('${r.id}')" title="Delete">✕</button>
+          </div>
+        </div>
+        <div class="review-card-body">
+          <div class="review-card-title">${r.title}</div>
+          <div class="review-card-desc">${r.context || 'No description provided.'}</div>
+          <div class="review-card-meta">
+            <div class="review-card-vibe">
+              <div class="vibe-mini-bar">
+                <div class="vibe-mini-fill" style="width:${vibeWidth}%;background:${vibeColor}"></div>
+              </div>
+              <span class="vibe-mini-score" style="color:${vibeColor}">${avgScore || '—'}</span>
+            </div>
+            <div class="review-card-date">${responseCount > 0 ? responseCount + ' responses · ' : ''}${timeAgo}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ========== CLOSE / REOPEN / DELETE ==========
+  function closeReview(id) {
+    const reviews = getReviews();
+    const idx = reviews.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      reviews[idx].status = 'closed';
+      localStorage.setItem('reviewbridge_reviews', JSON.stringify(reviews));
+      renderDashboardCards();
+      showToast('✓ Review closed and archived');
+    }
+  }
+
+  function reopenReview(id) {
+    const reviews = getReviews();
+    const idx = reviews.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      reviews[idx].status = 'active';
+      localStorage.setItem('reviewbridge_reviews', JSON.stringify(reviews));
+      renderDashboardCards();
+      showToast('✓ Review reopened');
+    }
+  }
+
+  let pendingDeleteId = null;
+
+  function confirmDeleteReview(id) {
+    pendingDeleteId = id;
+    const review = getReviewById(id);
+    document.getElementById('confirm-title').textContent = 'Delete review?';
+    document.getElementById('confirm-message').textContent = `"${review?.title || 'Untitled'}" and all its feedback will be permanently deleted.`;
+    const actionBtn = document.getElementById('confirm-action');
+    actionBtn.textContent = 'Delete';
+    actionBtn.style.background = 'var(--red)';
+    actionBtn.onclick = executeDelete;
+    document.getElementById('confirm-modal').classList.add('active');
+  }
+
+  function executeDelete() {
+    if (!pendingDeleteId) return;
+    let reviews = getReviews();
+    reviews = reviews.filter(r => r.id !== pendingDeleteId);
+    localStorage.setItem('reviewbridge_reviews', JSON.stringify(reviews));
+    pendingDeleteId = null;
+    closeConfirm();
+    renderDashboardCards();
+    showToast('✓ Review deleted');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-modal').classList.remove('active');
+    pendingDeleteId = null;
+  }
+
+  function toggleArchived() {
+    const toggle = document.getElementById('archived-toggle');
+    const grid = document.getElementById('archived-grid');
+    toggle.classList.toggle('open');
+    grid.classList.toggle('open');
+  }
+
+  function openReview(id) {
+    const review = getReviewById(id);
+    if (review) {
+      // Opening from dashboard = you're the designer
+      document.body.classList.add('is-designer');
+      document.body.classList.remove('is-reviewer');
+      window._currentReview = review;
+      loadPrototypeInReviewer(review);
+      showView('reviewer');
+    }
+  }
+
+  function getTimeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  // ========== "PREVIEW AS REVIEWER" from share modal ==========
+  function previewAsReviewer() {
+    closeShareModal();
+    const review = window._currentReview;
+    if (review) {
+      loadPrototypeInReviewer(review);
+    }
+    showView('reviewer');
+  }
+
+  // ========== ON PAGE LOAD — check URL for review ID ==========
+  (function init() {
+    // Seed demo data on first ever load
+    seedDemoData();
+
+    const params = new URLSearchParams(window.location.search);
+    const reviewId = params.get('review');
+    const hash = window.location.hash.replace('#', '');
+
+    if (reviewId) {
+      // Arriving via shared link — you're a reviewer
+      document.body.classList.add('is-reviewer');
+      document.body.classList.remove('is-designer');
+
+      const review = getReviewById(reviewId);
+      if (review) {
+        window._currentReview = review;
+        loadPrototypeInReviewer(review);
+        showView('reviewer');
+        renderDashboardCards();
+        return;
+      }
+    } else {
+      // Direct access — you're the designer/owner
+      document.body.classList.add('is-designer');
+      document.body.classList.remove('is-reviewer');
+    }
+
+    if (hash && ['dashboard', 'create', 'reviewer', 'results'].includes(hash)) {
+      showView(hash);
+    }
+
+    renderDashboardCards();
+  })();
+</script>
+
+</body>
+</html>
