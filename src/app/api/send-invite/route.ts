@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Email and reviewId are required' }, { status: 400 })
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    || 'http://localhost:3000'
   const reviewUrl = `${appUrl}/r/${reviewId}`
 
   // Check if Resend API key is configured
