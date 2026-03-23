@@ -25,6 +25,10 @@ export default function CreatePage() {
   const [showShareModal, setShowShareModal] = useState(false)
   const [shareUrl, setShareUrl] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  const [sentEmails, setSentEmails] = useState<string[]>([])
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [shareTab, setShareTab] = useState<'slack' | 'email'>('slack')
+  const [slackMessage, setSlackMessage] = useState('')
   const [publishing, setPublishing] = useState(false)
 
   const addQuestion = () => {
@@ -63,7 +67,9 @@ export default function CreatePage() {
         questions: questions.filter(q => q.text.trim()),
       })
       const baseUrl = window.location.origin
-      setShareUrl(`${baseUrl}/r/${id}`)
+      const url = `${baseUrl}/r/${id}`
+      setShareUrl(url)
+      setSlackMessage(`Just published a new design for review: *${title || 'Untitled Review'}*\n\nI'm looking for feedback on:\n${questions.filter(q => q.text.trim()).map((q, i) => `${i + 1}. ${q.text}`).join('\n')}\n\nLeave your feedback here: ${url}`)
       setShowShareModal(true)
       showToast('✓ Review published!')
     } catch (err) {
@@ -91,8 +97,9 @@ export default function CreatePage() {
 
   const sendInvite = async () => {
     if (!inviteEmail.trim()) return
+    setSendingEmail(true)
     try {
-      await fetch('/api/send-invite', {
+      const res = await fetch('/api/send-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -101,10 +108,29 @@ export default function CreatePage() {
           reviewTitle: title,
         }),
       })
-      showToast(`Invite sent to ${inviteEmail}`)
-      setInviteEmail('')
+      const data = await res.json()
+      if (data.fallback) {
+        showToast('Email not configured yet — copy the link to share manually')
+      } else if (data.success) {
+        setSentEmails([...sentEmails, inviteEmail])
+        showToast(`Invite sent to ${inviteEmail}`)
+        setInviteEmail('')
+      } else {
+        showToast('Error sending invite')
+      }
     } catch {
       showToast('Error sending invite')
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  const copySlackMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(slackMessage)
+      showToast('Slack message copied! Paste it in your channel.')
+    } catch {
+      showToast('Could not copy — try selecting manually')
     }
   }
 
@@ -259,34 +285,142 @@ export default function CreatePage() {
 
       {/* Share Modal */}
       <div className={`modal-overlay ${showShareModal ? 'active' : ''}`}>
-        <div className="modal">
-          <h2>Share your review</h2>
-          <p>Anyone with this link can view the design and leave feedback.</p>
+        <div className="modal" style={{ maxWidth: 520 }}>
+          <h2>{title || 'Your Review'}</h2>
 
-          <div className="share-link-box">
+          {/* Share link */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>🔗 Anyone with the link can view and respond</span>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={copyShareLink}
+              style={{ marginLeft: 'auto', fontSize: 12 }}
+            >
+              Copy Link
+            </button>
+          </div>
+          <div className="share-link-box" style={{ marginBottom: 20 }}>
             <input className="share-link-input" value={shareUrl} readOnly />
-            <button className="btn btn-primary btn-sm" onClick={copyShareLink}>Copy</button>
           </div>
 
-          <div>
-            <label className="form-label">Invite reviewers by email</label>
-            <div className="invite-row">
-              <input
+          {/* Tabs */}
+          <div style={{
+            display: 'flex',
+            borderBottom: '1px solid var(--border)',
+            marginBottom: 16,
+            gap: 0,
+          }}>
+            <button
+              onClick={() => setShareTab('slack')}
+              style={{
+                padding: '10px 20px',
+                fontSize: 14,
+                fontWeight: 600,
+                background: 'none',
+                border: 'none',
+                borderBottom: shareTab === 'slack' ? '2px solid var(--text-primary)' : '2px solid transparent',
+                color: shareTab === 'slack' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              💬 Post message
+            </button>
+            <button
+              onClick={() => setShareTab('email')}
+              style={{
+                padding: '10px 20px',
+                fontSize: 14,
+                fontWeight: 600,
+                background: 'none',
+                border: 'none',
+                borderBottom: shareTab === 'email' ? '2px solid var(--text-primary)' : '2px solid transparent',
+                color: shareTab === 'email' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              ✉️ Send directly
+            </button>
+          </div>
+
+          {/* Slack tab */}
+          {shareTab === 'slack' && (
+            <div>
+              <textarea
                 className="form-input"
-                type="email"
-                placeholder="email@company.com"
-                style={{ flex: 1 }}
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendInvite()}
+                value={slackMessage}
+                onChange={(e) => setSlackMessage(e.target.value)}
+                style={{
+                  minHeight: 140,
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  resize: 'vertical',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+                }}
               />
-              <button className="btn btn-secondary btn-sm" onClick={sendInvite}>Send</button>
+              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                <button className="btn btn-primary" onClick={copySlackMessage} style={{ flex: 1 }}>
+                  📋 Copy Message
+                </button>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8, textAlign: 'center' }}>
+                Paste this into Slack, Teams, or any messaging app
+              </p>
             </div>
-          </div>
+          )}
 
-          <div className="modal-actions">
+          {/* Email tab */}
+          {shareTab === 'email' && (
+            <div>
+              <div className="invite-row" style={{ marginBottom: 12 }}>
+                <input
+                  className="form-input"
+                  type="email"
+                  placeholder="reviewer@company.com"
+                  style={{ flex: 1 }}
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendInvite()}
+                />
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={sendInvite}
+                  disabled={sendingEmail}
+                >
+                  {sendingEmail ? '...' : 'Send'}
+                </button>
+              </div>
+              {sentEmails.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 6 }}>Sent to:</div>
+                  {sentEmails.map((e, i) => (
+                    <div key={i} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '6px 0',
+                      fontSize: 13,
+                      color: 'var(--text-secondary)',
+                    }}>
+                      <span style={{ color: 'var(--green)' }}>✓</span> {e}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 12 }}>
+                Sends a styled email invitation with a direct link to your review.
+              </p>
+            </div>
+          )}
+
+          <div className="modal-actions" style={{ marginTop: 20 }}>
             <button className="btn btn-ghost" onClick={() => { setShowShareModal(false); router.push('/') }}>
-              Close
+              Done
             </button>
             <button className="btn btn-accent" onClick={() => {
               setShowShareModal(false)
