@@ -136,14 +136,14 @@ export default function ReviewerView({ review }: { review: Review }) {
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={() => router.push(`/results/${review.id}`)}
-                  style={{ fontSize: 12 }}
+                  style={{ fontSize: 12, height: 29, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}
                 >
                   📊 Results
                 </button>
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={() => router.push(`/edit/${review.id}`)}
-                  style={{ fontSize: 12 }}
+                  style={{ fontSize: 12, height: 29, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}
                 >
                   ✎ Edit
                 </button>
@@ -181,7 +181,7 @@ export default function ReviewerView({ review }: { review: Review }) {
                 allowFullScreen
               />
             ) : loomEmbedUrl ? (
-              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#f5f5f7' }}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
                   <iframe
                     src={loomEmbedUrl}
@@ -190,7 +190,7 @@ export default function ReviewerView({ review }: { review: Review }) {
                     allow="autoplay; fullscreen"
                   />
                 </div>
-                <div style={{ padding: '12px 16px', background: 'white', borderTop: '1px solid #eee', textAlign: 'center' }}>
+                <div style={{ padding: '12px 16px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
                   <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>🎥 Loom walkthrough by the designer</span>
                 </div>
               </div>
