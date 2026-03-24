@@ -1028,10 +1028,12 @@
 
   .vibe-score-display {
     margin-top: 16px;
-    padding: 12px 20px;
-    background: var(--bg-secondary);
+    padding: 8px 18px;
+    background: color-mix(in srgb, var(--bg-secondary) 50%, transparent);
+    border: 1px solid var(--border);
     border-radius: var(--radius-full);
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     font-size: 14px;
     font-weight: 500;
   }

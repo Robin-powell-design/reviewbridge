@@ -22,6 +22,8 @@ export interface Response {
   review_id: string
   reviewer_name: string
   vibe_score: number
+  brand_score: number
+  flow_score: number
   quick_take: string
   answers: QuestionAnswer[]
   pins: PinComment[]

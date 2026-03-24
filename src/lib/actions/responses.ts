@@ -8,6 +8,8 @@ export async function submitResponse(data: {
   review_id: string
   reviewer_name: string
   vibe_score: number
+  brand_score: number
+  flow_score: number
   quick_take: string
   answers: { question: string; answer: string }[]
   pins: { pin: string; comment: string; x?: number; y?: number }[]
@@ -19,6 +21,8 @@ export async function submitResponse(data: {
     review_id: data.review_id,
     reviewer_name: data.reviewer_name,
     vibe_score: data.vibe_score,
+    brand_score: data.brand_score,
+    flow_score: data.flow_score,
     quick_take: data.quick_take,
     answers: data.answers,
     pins: data.pins,

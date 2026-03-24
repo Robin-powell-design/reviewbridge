@@ -20,11 +20,15 @@ export default function ReviewerView({ review }: { review: Review }) {
   const { isAdmin } = useAdmin()
   const [activeTab, setActiveTab] = useState<'vibe' | 'feedback' | 'pins' | 'ai'>('vibe')
   const [vibeValue, setVibeValue] = useState(70)
+  const [brandValue, setBrandValue] = useState(50)
+  const [flowValue, setFlowValue] = useState(50)
   const [quickTake, setQuickTake] = useState('')
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [pins, setPins] = useState<Pin[]>([])
   const [pinMode, setPinMode] = useState(false)
   const [reviewerName, setReviewerName] = useState('')
+  const [showNameModal, setShowNameModal] = useState(true)
+  const [nameInput, setNameInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [showLoom, setShowLoom] = useState(false)
@@ -41,10 +45,28 @@ export default function ReviewerView({ review }: { review: Review }) {
     return '😍'
   }
 
-  const getSliderBackground = () => {
-    const hue = (vibeValue / 100) * 120
-    const sat = 70 + (vibeValue / 100) * 20
-    return `linear-gradient(90deg, hsl(0, 0%, 85%) 0%, hsl(${hue}, ${sat}%, 55%) ${vibeValue}%, hsl(0, 0%, 92%) ${vibeValue}%)`
+  const brandScore = (brandValue / 10).toFixed(1)
+  const getBrandEmoji = () => {
+    if (brandValue <= 20) return '😬'
+    if (brandValue <= 40) return '🤔'
+    if (brandValue <= 60) return '🤨'
+    if (brandValue <= 80) return '😏'
+    return '🤩'
+  }
+
+  const flowScore = (flowValue / 10).toFixed(1)
+  const getFlowEmoji = () => {
+    if (flowValue <= 20) return '😵'
+    if (flowValue <= 40) return '😕'
+    if (flowValue <= 60) return '🙂'
+    if (flowValue <= 80) return '😊'
+    return '⚡'
+  }
+
+  const getSliderBackground = (value: number) => {
+    const hue = (value / 100) * 120
+    const sat = 70 + (value / 100) * 20
+    return `linear-gradient(90deg, hsl(0, 0%, 85%) 0%, hsl(${hue}, ${sat}%, 55%) ${value}%, hsl(0, 0%, 92%) ${value}%)`
   }
 
   const handlePinClick = useCallback((e: React.MouseEvent) => {
@@ -62,10 +84,6 @@ export default function ReviewerView({ review }: { review: Review }) {
   }
 
   const handleSubmit = async () => {
-    if (!reviewerName.trim()) {
-      showToast('Please enter your name')
-      return
-    }
     setSubmitting(true)
     try {
       await submitResponse({
@@ -73,6 +91,8 @@ export default function ReviewerView({ review }: { review: Review }) {
         review_id: review.id,
         reviewer_name: reviewerName,
         vibe_score: parseFloat(vibeScore),
+        brand_score: parseFloat(brandScore),
+        flow_score: parseFloat(flowScore),
         quick_take: quickTake,
         answers: (review.questions || []).map((q: Question, i: number) => ({
           question: q.text,
@@ -123,14 +143,12 @@ export default function ReviewerView({ review }: { review: Review }) {
             </span>
           </div>
           <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input
-              className="form-input"
-              type="text"
-              placeholder="Your name..."
-              value={reviewerName}
-              onChange={(e) => setReviewerName(e.target.value)}
-              style={{ width: 160, padding: '6px 12px', fontSize: 13, borderRadius: 'var(--radius-full)' }}
-            />
+            <span
+              onClick={() => { setNameInput(reviewerName); setShowNameModal(true) }}
+              style={{ fontSize: 13, color: 'var(--text-secondary)', cursor: 'pointer', padding: '6px 12px', borderRadius: 'var(--radius-full)', background: 'var(--bg-secondary)' }}
+            >
+              {reviewerName || 'Anonymous'}
+            </span>
             {isAdmin && (
               <>
                 <button
@@ -256,8 +274,9 @@ export default function ReviewerView({ review }: { review: Review }) {
               <div className="panel-section active" style={{ display: 'block' }}>
                 <div className="vibe-check">
                   <div className="vibe-label">How does this design make you feel?</div>
-                  <div className="vibe-emoji" style={{ fontSize: 56, marginBottom: 16, transition: 'all 0.3s ease', lineHeight: 1 }}>
-                    {getVibeEmoji()}
+                  <div className="vibe-score-display" style={{ marginTop: 4, marginBottom: 12 }}>
+                    <span style={{ fontSize: 28, lineHeight: 1, marginRight: 6 }}>{getVibeEmoji()}</span>
+                    Score: {vibeScore} / 10
                   </div>
                   <div className="vibe-slider-container">
                     <input
@@ -266,7 +285,7 @@ export default function ReviewerView({ review }: { review: Review }) {
                       max="100"
                       value={vibeValue}
                       className="vibe-slider"
-                      style={{ background: getSliderBackground() }}
+                      style={{ background: getSliderBackground(vibeValue) }}
                       onChange={(e) => setVibeValue(parseInt(e.target.value))}
                     />
                   </div>
@@ -275,7 +294,58 @@ export default function ReviewerView({ review }: { review: Review }) {
                     <span>😊 Good</span>
                     <span>😍 Love it</span>
                   </div>
-                  <div className="vibe-score-display">Score: {vibeScore} / 10</div>
+                </div>
+
+                {/* Brand slider */}
+                <div className="vibe-check" style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
+                  <div className="vibe-label">Does this feel on-brand?</div>
+                  <div className="vibe-score-display" style={{ marginTop: 4, marginBottom: 12 }}>
+                    <span style={{ fontSize: 28, lineHeight: 1, marginRight: 6 }}>{getBrandEmoji()}</span>
+                    Score: {brandScore} / 10
+                  </div>
+                  <div className="vibe-slider-container">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={brandValue}
+                      className="vibe-slider"
+                      style={{ background: getSliderBackground(brandValue) }}
+                      onChange={(e) => setBrandValue(parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="vibe-labels">
+                    <span>Off-brand</span>
+                    <span>Partially</span>
+                    <span>Mostly</span>
+                    <span>Nailed it</span>
+                  </div>
+                </div>
+
+                {/* Flow slider */}
+                <div className="vibe-check" style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--border)' }}>
+                  <div className="vibe-label">How intuitive is the flow?</div>
+                  <div className="vibe-score-display" style={{ marginTop: 4, marginBottom: 12 }}>
+                    <span style={{ fontSize: 28, lineHeight: 1, marginRight: 6 }}>{getFlowEmoji()}</span>
+                    Score: {flowScore} / 10
+                  </div>
+                  <div className="vibe-slider-container">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={flowValue}
+                      className="vibe-slider"
+                      style={{ background: getSliderBackground(flowValue) }}
+                      onChange={(e) => setFlowValue(parseInt(e.target.value))}
+                    />
+                  </div>
+                  <div className="vibe-labels">
+                    <span>Confusing</span>
+                    <span>Some friction</span>
+                    <span>Smooth</span>
+                    <span>Effortless</span>
+                  </div>
                 </div>
 
                 <div style={{ marginTop: 28 }}>
@@ -467,6 +537,78 @@ export default function ReviewerView({ review }: { review: Review }) {
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Name modal */}
+      {showNameModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 400,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--bg-card)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '32px 28px',
+              width: 380,
+              maxWidth: '90vw',
+              boxShadow: 'var(--shadow-xl)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+            <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 600 }}>Welcome, reviewer!</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: 'var(--text-secondary)' }}>
+              Let us know who you are, or stay anonymous.
+            </p>
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Your name..."
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && nameInput.trim()) {
+                  setReviewerName(nameInput.trim())
+                  setShowNameModal(false)
+                }
+              }}
+              autoFocus
+              style={{ width: '100%', padding: '10px 14px', fontSize: 14, borderRadius: 'var(--radius)', marginBottom: 12 }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="btn btn-secondary"
+                style={{ flex: 1, justifyContent: 'center' }}
+                onClick={() => {
+                  setReviewerName('Anonymous')
+                  setShowNameModal(false)
+                }}
+              >
+                Stay anonymous
+              </button>
+              <button
+                className="btn btn-accent"
+                style={{ flex: 1, justifyContent: 'center' }}
+                disabled={!nameInput.trim()}
+                onClick={() => {
+                  setReviewerName(nameInput.trim())
+                  setShowNameModal(false)
+                }}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
       )}
