@@ -16,7 +16,7 @@ interface Pin {
 
 export default function ReviewerView({ review }: { review: Review }) {
   const { isAdmin } = useAdmin()
-  const [activeTab, setActiveTab] = useState<'vibe' | 'feedback' | 'pins' | 'ai'>('vibe')
+  const [activeTab, setActiveTab] = useState<'vibe' | 'feedback' | 'pins'>('vibe')
   const [vibeValue, setVibeValue] = useState(70)
   const [brandValue, setBrandValue] = useState(50)
   const [flowValue, setFlowValue] = useState(50)
@@ -29,6 +29,9 @@ export default function ReviewerView({ review }: { review: Review }) {
   const [nameInput, setNameInput] = useState('')
   const [chosenOption, setChosenOption] = useState<string | null>(null)
   const [comparePhase, setComparePhase] = useState(review.review_mode === 'compare')
+  const [vibeVisited, setVibeVisited] = useState(true)
+  const [questionsVisited, setQuestionsVisited] = useState(false)
+  const [pinsVisited, setPinsVisited] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [showLoom, setShowLoom] = useState(false)
@@ -121,20 +124,59 @@ export default function ReviewerView({ review }: { review: Review }) {
   const chosenEmbedRaw = review.review_mode === 'compare' && chosenOption
     ? (review.compare_options || []).find(o => o.label === chosenOption)?.embed_url || ''
     : review.embed_url
+  // Step completion tracking
+  const vibeComplete = vibeVisited
+  const hasAnswers = !review.questions?.length || Object.values(answers).some(a => a.trim())
+  const questionsComplete = questionsVisited && hasAnswers
+  const pinsComplete = pinsVisited
+  // Linear flow: which tabs are unlocked
+  const questionsUnlocked = vibeComplete
+  const pinsUnlocked = questionsComplete
+
   const isUploadedImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(chosenEmbedRaw) || chosenEmbedRaw.includes('/storage/v1/object/public/')
   const embedUrl = isUploadedImage ? null : convertToEmbedUrl(chosenEmbedRaw, review.embed_type)
   const loomEmbedUrl = convertLoomToEmbed(review.loom_url)
 
   return (
     <div style={{ height: '100vh', overflow: 'hidden' }}>
-      {/* Pin mode toggle */}
-      <button
-        className={`pin-mode-toggle ${pinMode ? 'active' : ''}`}
-        onClick={() => setPinMode(!pinMode)}
-        style={{ bottom: 24, left: 'calc((100% - 420px) / 2)', transform: 'translateX(-50%)', zIndex: 100 }}
-      >
-        {pinMode ? '📌 Pin Mode — Click to place · ESC to exit' : '📌 Pin Mode'}
-      </button>
+      {/* Pin mode banner */}
+      {pinMode && (
+        <div style={{
+          position: 'fixed',
+          bottom: 24,
+          left: 'calc((100% - 420px) / 2)',
+          transform: 'translateX(-50%)',
+          zIndex: 100,
+          background: 'var(--accent)',
+          color: 'white',
+          padding: '10px 20px',
+          borderRadius: 'var(--radius-full)',
+          fontSize: 13,
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          boxShadow: 'var(--shadow-lg)',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          <span>📌 Click anywhere on the design to place a pin</span>
+          <button
+            onClick={() => setPinMode(false)}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              color: 'white',
+              padding: '4px 10px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 12,
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            Done
+          </button>
+        </div>
+      )}
 
       {/* Nav bar for reviewer */}
       <nav className="nav" style={{ zIndex: 200 }}>
@@ -309,6 +351,7 @@ export default function ReviewerView({ review }: { review: Review }) {
             <div
               className={`pin-overlay ${pinMode ? 'pin-mode' : ''}`}
               onClick={handlePinClick}
+              style={pinMode ? { cursor: 'crosshair' } : undefined}
             />
             {/* Render pins */}
             {pins.map((pin) => (
@@ -412,12 +455,32 @@ export default function ReviewerView({ review }: { review: Review }) {
           </div>
 
           <div className="panel-tabs">
-            <button className={`panel-tab ${activeTab === 'vibe' ? 'active' : ''}`} onClick={() => setActiveTab('vibe')}>Vibe Check</button>
-            <button className={`panel-tab ${activeTab === 'feedback' ? 'active' : ''}`} onClick={() => setActiveTab('feedback')}>Questions</button>
-            <button className={`panel-tab ${activeTab === 'pins' ? 'active' : ''}`} onClick={() => setActiveTab('pins')}>
+            <button className={`panel-tab ${activeTab === 'vibe' ? 'active' : ''}`} onClick={() => { setActiveTab('vibe'); setVibeVisited(true) }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', fontSize: 11, fontWeight: 700, marginRight: 6, background: vibeComplete ? 'var(--green)' : 'var(--bg-secondary)', color: vibeComplete ? 'white' : 'var(--text-tertiary)', transition: 'all 0.2s' }}>
+                {vibeComplete ? '✓' : '1'}
+              </span>
+              Vibe Check
+            </button>
+            <button
+              className={`panel-tab ${activeTab === 'feedback' ? 'active' : ''}`}
+              onClick={() => { if (questionsUnlocked) { setActiveTab('feedback'); setQuestionsVisited(true) } }}
+              style={{ opacity: questionsUnlocked ? 1 : 0.4, cursor: questionsUnlocked ? 'pointer' : 'not-allowed' }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', fontSize: 11, fontWeight: 700, marginRight: 6, background: questionsComplete ? 'var(--green)' : 'var(--bg-secondary)', color: questionsComplete ? 'white' : 'var(--text-tertiary)', transition: 'all 0.2s' }}>
+                {questionsComplete ? '✓' : '2'}
+              </span>
+              Questions
+            </button>
+            <button
+              className={`panel-tab ${activeTab === 'pins' ? 'active' : ''}`}
+              onClick={() => { if (pinsUnlocked) { setActiveTab('pins'); setPinsVisited(true) } }}
+              style={{ opacity: pinsUnlocked ? 1 : 0.4, cursor: pinsUnlocked ? 'pointer' : 'not-allowed' }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: '50%', fontSize: 11, fontWeight: 700, marginRight: 6, background: pinsComplete ? 'var(--green)' : 'var(--bg-secondary)', color: pinsComplete ? 'white' : 'var(--text-tertiary)', transition: 'all 0.2s' }}>
+                {pinsComplete ? '✓' : '3'}
+              </span>
               Pins {pins.length > 0 && <span style={{ background: 'var(--accent)', color: 'white', borderRadius: '50%', padding: '1px 6px', fontSize: 10, marginLeft: 4 }}>{pins.length}</span>}
             </button>
-            <button className={`panel-tab ${activeTab === 'ai' ? 'active' : ''}`} onClick={() => setActiveTab('ai')}>AI Check</button>
           </div>
 
           <div className="panel-content">
@@ -512,6 +575,14 @@ export default function ReviewerView({ review }: { review: Review }) {
                     onChange={(e) => setQuickTake(e.target.value)}
                   />
                 </div>
+
+                <button
+                  className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: 20 }}
+                  onClick={() => { setActiveTab('feedback'); setQuestionsVisited(true) }}
+                >
+                  Next: Questions →
+                </button>
               </div>
             )}
 
@@ -565,6 +636,15 @@ export default function ReviewerView({ review }: { review: Review }) {
                     </div>
                   )}
                 </div>
+
+                <button
+                  className="btn btn-secondary"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: 20, opacity: hasAnswers ? 1 : 0.4 }}
+                  disabled={!hasAnswers}
+                  onClick={() => { setActiveTab('pins'); setPinsVisited(true) }}
+                >
+                  {hasAnswers ? 'Next: Pins →' : 'Answer at least one question to continue'}
+                </button>
               </div>
             )}
 
@@ -587,48 +667,48 @@ export default function ReviewerView({ review }: { review: Review }) {
                         </div>
                       </div>
                     ))}
+                    <div style={{ textAlign: 'center', marginTop: 8 }}>
+                      <button
+                        className="btn btn-sm"
+                        style={{ padding: '6px 20px', background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+                        onClick={() => setPinMode(true)}
+                      >
+                        📌 Add another pin
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <div className="add-pin-prompt">
+                  <div className="add-pin-prompt" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
                     <span>📌</span>
-                    Click the Pin Mode button below,<br />then click anywhere on the design<br />to drop a pin comment
+                    <span style={{ fontSize: 13 }}>Click the button below to start<br />adding comments to the design</span>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setPinMode(true)}
+                    >
+                      📌 Enter Pin Mode
+                    </button>
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* AI Check */}
-            {activeTab === 'ai' && (
-              <div className="panel-section active" style={{ display: 'block' }}>
-                <div className="ai-vibe-section">
-                  <div className="ai-vibe-card">
-                    <div className="ai-vibe-header">
-                      <div className="ai-vibe-icon">✨</div>
-                      <div>
-                        <div className="ai-vibe-title">AI Design Review</div>
-                        <div className="ai-vibe-subtitle">Coming soon — will analyse your design automatically</div>
-                      </div>
-                    </div>
-                    <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 14, lineHeight: 1.6 }}>
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
-                      <p>AI-powered design review will score your work on visual hierarchy, accessibility, consistency, and usability — with actionable suggestions.</p>
-                      <p style={{ marginTop: 8, fontSize: 12 }}>Add your Anthropic API key to enable this feature.</p>
-                    </div>
-                  </div>
+                <div style={{ marginTop: 20, padding: '16px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius)', textAlign: 'center' }}>
+                  <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
+                    Pins are optional — add them if you want, then submit below.
+                  </p>
                 </div>
               </div>
             )}
+
           </div>
 
           {/* Submit bar */}
           <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)', background: 'var(--bg-card)' }}>
             <button
               className="btn btn-accent"
-              style={{ width: '100%', justifyContent: 'center' }}
+              style={{ width: '100%', justifyContent: 'center', opacity: pinsComplete ? 1 : 0.4 }}
               onClick={handleSubmit}
-              disabled={submitting || submitted}
+              disabled={!pinsComplete || submitting || submitted}
             >
-              {submitted ? '✓ Submitted!' : submitting ? 'Submitting...' : 'Submit Feedback'}
+              {submitted ? '✓ Submitted!' : submitting ? 'Submitting...' : pinsComplete ? 'Submit Feedback' : 'Complete all steps to submit'}
             </button>
           </div>
         </div>
