@@ -2,6 +2,7 @@ import { getReviewById } from '@/lib/actions/reviews'
 import { notFound } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Toast from '@/components/Toast'
+import CopyLinkButton from './CopyLinkButton'
 import type { Response } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -89,9 +90,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
               </p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <a href={`/r/${review.id}`} className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
-                Share Review Link
-              </a>
+              <CopyLinkButton reviewId={review.id} reviewTitle={review.title} />
             </div>
           </div>
 
