@@ -233,13 +233,89 @@ export default function CreatePage() {
                       </div>
                     ))}
                   </div>
-                  <input
-                    className="form-input"
-                    type="url"
-                    placeholder={embedType === 'figma' ? 'Paste your Figma URL...' : 'Paste your prototype URL...'}
-                    value={embedUrl}
-                    onChange={(e) => setEmbedUrl(e.target.value)}
-                  />
+                  {embedType === 'upload' ? (
+                    embedUrl ? (
+                      <div style={{ position: 'relative', marginTop: 8 }}>
+                        <img
+                          src={embedUrl}
+                          alt="Uploaded design"
+                          style={{ width: '100%', maxHeight: 300, objectFit: 'contain', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}
+                        />
+                        <button
+                          onClick={() => setEmbedUrl('')}
+                          style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: 'rgba(0,0,0,0.6)',
+                            color: 'white',
+                            border: 'none',
+                            fontSize: 14,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <label style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: 180,
+                        border: '2px dashed var(--border)',
+                        borderRadius: 'var(--radius-lg)',
+                        cursor: uploading !== null ? 'wait' : 'pointer',
+                        color: 'var(--text-tertiary)',
+                        fontSize: 14,
+                        gap: 8,
+                        marginTop: 8,
+                      }}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            setUploading(-1)
+                            try {
+                              const url = await uploadImage(file, `standard_${Date.now()}`)
+                              setEmbedUrl(url)
+                            } catch (err) {
+                              console.error(err)
+                              showToast('Error uploading image')
+                            } finally {
+                              setUploading(null)
+                            }
+                          }}
+                        />
+                        {uploading === -1 ? (
+                          <span>Uploading...</span>
+                        ) : (
+                          <>
+                            <span style={{ fontSize: 32 }}>📸</span>
+                            <span>Click to upload a screenshot</span>
+                          </>
+                        )}
+                      </label>
+                    )
+                  ) : (
+                    <input
+                      className="form-input"
+                      type="url"
+                      placeholder={embedType === 'figma' ? 'Paste your Figma URL...' : 'Paste your prototype URL...'}
+                      value={embedUrl}
+                      onChange={(e) => setEmbedUrl(e.target.value)}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="form-group">

@@ -121,7 +121,8 @@ export default function ReviewerView({ review }: { review: Review }) {
   const chosenEmbedRaw = review.review_mode === 'compare' && chosenOption
     ? (review.compare_options || []).find(o => o.label === chosenOption)?.embed_url || ''
     : review.embed_url
-  const embedUrl = convertToEmbedUrl(chosenEmbedRaw, review.embed_type)
+  const isUploadedImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(chosenEmbedRaw) || chosenEmbedRaw.includes('/storage/v1/object/public/')
+  const embedUrl = isUploadedImage ? null : convertToEmbedUrl(chosenEmbedRaw, review.embed_type)
   const loomEmbedUrl = convertLoomToEmbed(review.loom_url)
 
   return (
@@ -320,7 +321,13 @@ export default function ReviewerView({ review }: { review: Review }) {
               </div>
             ))}
 
-            {embedUrl ? (
+            {isUploadedImage ? (
+              <img
+                src={chosenEmbedRaw}
+                alt={review.title}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : embedUrl ? (
               <iframe
                 src={embedUrl}
                 style={{ width: '100%', height: '100%', border: 'none' }}
