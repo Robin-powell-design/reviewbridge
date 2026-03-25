@@ -10,6 +10,8 @@ export async function createReview(data: {
   embed_url: string
   embed_type: 'prototype' | 'figma' | 'upload'
   loom_url: string
+  review_mode?: 'standard' | 'compare'
+  compare_options?: { label: string; embed_url: string }[]
   questions: { text: string; type: string }[]
 }) {
   const supabase = await createServerSupabaseClient()
@@ -21,6 +23,8 @@ export async function createReview(data: {
     embed_url: data.embed_url,
     embed_type: data.embed_type,
     loom_url: data.loom_url,
+    review_mode: data.review_mode || 'standard',
+    compare_options: data.compare_options || [],
     questions: data.questions,
     status: 'active',
   })
@@ -70,6 +74,8 @@ export async function updateReview(id: string, data: {
   embed_url: string
   embed_type: 'prototype' | 'figma' | 'upload'
   loom_url: string
+  review_mode?: 'standard' | 'compare'
+  compare_options?: { label: string; embed_url: string }[]
   questions: { text: string; type: string }[]
 }) {
   const supabase = await createServerSupabaseClient()
@@ -82,6 +88,8 @@ export async function updateReview(id: string, data: {
       embed_url: data.embed_url,
       embed_type: data.embed_type,
       loom_url: data.loom_url,
+      review_mode: data.review_mode || 'standard',
+      compare_options: data.compare_options || [],
       questions: data.questions,
       updated_at: new Date().toISOString(),
     })

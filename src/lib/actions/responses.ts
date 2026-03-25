@@ -10,6 +10,7 @@ export async function submitResponse(data: {
   vibe_score: number
   brand_score: number
   flow_score: number
+  chosen_option?: string | null
   quick_take: string
   answers: { question: string; answer: string }[]
   pins: { pin: string; comment: string; x?: number; y?: number }[]
@@ -23,6 +24,7 @@ export async function submitResponse(data: {
     vibe_score: data.vibe_score,
     brand_score: data.brand_score,
     flow_score: data.flow_score,
+    chosen_option: data.chosen_option || null,
     quick_take: data.quick_take,
     answers: data.answers,
     pins: data.pins,

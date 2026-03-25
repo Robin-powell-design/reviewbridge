@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAdmin } from '@/lib/AdminContext'
 import type { Review, Question } from '@/lib/types'
 import { convertToEmbedUrl, convertLoomToEmbed } from '@/lib/utils'
@@ -16,7 +15,6 @@ interface Pin {
 }
 
 export default function ReviewerView({ review }: { review: Review }) {
-  const router = useRouter()
   const { isAdmin } = useAdmin()
   const [activeTab, setActiveTab] = useState<'vibe' | 'feedback' | 'pins' | 'ai'>('vibe')
   const [vibeValue, setVibeValue] = useState(70)
@@ -29,6 +27,8 @@ export default function ReviewerView({ review }: { review: Review }) {
   const [reviewerName, setReviewerName] = useState('')
   const [showNameModal, setShowNameModal] = useState(true)
   const [nameInput, setNameInput] = useState('')
+  const [chosenOption, setChosenOption] = useState<string | null>(null)
+  const [comparePhase, setComparePhase] = useState(review.review_mode === 'compare')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [showLoom, setShowLoom] = useState(false)
@@ -93,6 +93,7 @@ export default function ReviewerView({ review }: { review: Review }) {
         vibe_score: parseFloat(vibeScore),
         brand_score: parseFloat(brandScore),
         flow_score: parseFloat(flowScore),
+        chosen_option: chosenOption,
         quick_take: quickTake,
         answers: (review.questions || []).map((q: Question, i: number) => ({
           question: q.text,
@@ -107,7 +108,7 @@ export default function ReviewerView({ review }: { review: Review }) {
       })
       setSubmitted(true)
       showToast('✓ Feedback submitted!')
-      setTimeout(() => router.push(`/results/${review.id}`), 1500)
+      setTimeout(() => window.location.href = `/results/${review.id}`, 1500)
     } catch (err) {
       showToast('Error submitting feedback')
       console.error(err)
@@ -116,7 +117,11 @@ export default function ReviewerView({ review }: { review: Review }) {
     }
   }
 
-  const embedUrl = convertToEmbedUrl(review.embed_url, review.embed_type)
+  // For compare reviews, show the chosen option's embed after selection
+  const chosenEmbedRaw = review.review_mode === 'compare' && chosenOption
+    ? (review.compare_options || []).find(o => o.label === chosenOption)?.embed_url || ''
+    : review.embed_url
+  const embedUrl = convertToEmbedUrl(chosenEmbedRaw, review.embed_type)
   const loomEmbedUrl = convertLoomToEmbed(review.loom_url)
 
   return (
@@ -131,9 +136,9 @@ export default function ReviewerView({ review }: { review: Review }) {
       </button>
 
       {/* Nav bar for reviewer */}
-      <nav className="nav">
+      <nav className="nav" style={{ zIndex: 200 }}>
         <div className="nav-inner">
-          <div className="nav-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer' }}>
+          <div className="nav-logo" onClick={() => window.location.href = '/'} style={{ cursor: 'pointer' }}>
             <div className="nav-logo-icon">R</div>
             ReviewBridge
           </div>
@@ -153,14 +158,14 @@ export default function ReviewerView({ review }: { review: Review }) {
               <>
                 <button
                   className="btn btn-secondary btn-sm"
-                  onClick={() => router.push(`/results/${review.id}`)}
+                  onClick={() => window.location.href = `/results/${review.id}`}
                   style={{ fontSize: 12, height: 29, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}
                 >
                   📊 Results
                 </button>
                 <button
                   className="btn btn-secondary btn-sm"
-                  onClick={() => router.push(`/edit/${review.id}`)}
+                  onClick={() => window.location.href = `/edit/${review.id}`}
                   style={{ fontSize: 12, height: 29, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}
                 >
                   ✎ Edit
@@ -171,7 +176,131 @@ export default function ReviewerView({ review }: { review: Review }) {
         </div>
       </nav>
 
-      <div className="reviewer-layout">
+      {/* Compare Phase — full-width option selection */}
+      {comparePhase && (
+        <div style={{
+          position: 'fixed',
+          top: 56,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'var(--bg)',
+          zIndex: 50,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+        }}>
+          <div style={{
+            textAlign: 'center',
+            padding: '32px 24px 16px',
+          }}>
+            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{review.title}</h2>
+            {review.context && (
+              <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-secondary)', maxWidth: 500, marginInline: 'auto' }}>
+                {review.context}
+              </p>
+            )}
+            <p style={{ margin: '12px 0 0', fontSize: 15, color: 'var(--text-secondary)', fontWeight: 500 }}>
+              Pick your preferred option to continue
+            </p>
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: 20,
+            padding: '16px 24px 32px',
+            flex: 1,
+            minHeight: 0,
+          }}>
+            {(review.compare_options || []).map((opt, i) => {
+              const isImage = /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(opt.embed_url) || opt.embed_url.includes('/storage/v1/object/public/')
+              const optEmbedUrl = isImage ? null : convertToEmbedUrl(opt.embed_url, review.embed_type)
+              return (
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'var(--bg-card)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--border)',
+                    overflow: 'hidden',
+                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent)'
+                    e.currentTarget.style.boxShadow = '0 0 0 1px var(--accent)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  <div style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                    <span style={{ fontWeight: 600, fontSize: 15 }}>{opt.label}</span>
+                    <span style={{
+                      fontSize: 12,
+                      color: 'var(--text-tertiary)',
+                      background: 'var(--bg-secondary)',
+                      padding: '2px 10px',
+                      borderRadius: 'var(--radius-full)',
+                    }}>
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                  </div>
+                  <div style={{ flex: 1, position: 'relative', minHeight: 300, overflow: 'auto' }}>
+                    {isImage ? (
+                      <img
+                        src={opt.embed_url}
+                        alt={opt.label}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                      />
+                    ) : optEmbedUrl ? (
+                      <iframe
+                        src={optEmbedUrl}
+                        style={{ width: '100%', height: '100%', border: 'none' }}
+                        allow="clipboard-write"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100%',
+                        color: 'var(--text-tertiary)',
+                        fontSize: 14,
+                      }}>
+                        No design provided
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
+                    <button
+                      className="btn btn-accent"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={() => {
+                        setChosenOption(opt.label)
+                        setComparePhase(false)
+                      }}
+                    >
+                      Pick {opt.label}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="reviewer-layout" style={{ display: comparePhase ? 'none' : undefined }}>
         {/* Left: Prototype / Embed */}
         <div className="reviewer-prototype">
           <div className="prototype-frame" ref={frameRef}>
@@ -232,6 +361,22 @@ export default function ReviewerView({ review }: { review: Review }) {
         <div className="reviewer-panel">
           <div className="panel-header">
             <h2>{review.title}</h2>
+            {chosenOption && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 6,
+                padding: '4px 12px',
+                background: 'var(--accent-soft)',
+                color: 'var(--accent)',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 12,
+                fontWeight: 600,
+              }}>
+                You chose: {chosenOption}
+              </div>
+            )}
             {review.context && (
               <p style={{ margin: '4px 0 0', opacity: 0.6, fontSize: 13 }}>{review.context.substring(0, 100)}{review.context.length > 100 ? '...' : ''}</p>
             )}

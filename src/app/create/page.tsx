@@ -1,19 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Toast, { showToast } from '@/components/Toast'
 import { createReview } from '@/lib/actions/reviews'
 import { generateId } from '@/lib/utils'
+import { uploadImage } from '@/lib/uploadImage'
 
 export default function CreatePage() {
-  const router = useRouter()
   const [step, setStep] = useState(1)
+  const [reviewMode, setReviewMode] = useState<'standard' | 'compare'>('standard')
   const [title, setTitle] = useState('')
   const [context, setContext] = useState('')
   const [embedType, setEmbedType] = useState<'prototype' | 'figma' | 'upload'>('prototype')
   const [embedUrl, setEmbedUrl] = useState('')
+  const [compareOptions, setCompareOptions] = useState([
+    { label: 'Option A', embed_url: '' },
+    { label: 'Option B', embed_url: '' },
+  ])
   const [loomUrl, setLoomUrl] = useState('')
   const [questions, setQuestions] = useState([
     { text: '🎯 What is the first thing you notice?', type: 'Text' },
@@ -29,6 +33,7 @@ export default function CreatePage() {
   const [sendingEmail, setSendingEmail] = useState(false)
   const [shareTab, setShareTab] = useState<'slack' | 'email'>('slack')
   const [slackMessage, setSlackMessage] = useState('')
+  const [uploading, setUploading] = useState<number | null>(null)
   const [publishing, setPublishing] = useState(false)
 
   const addQuestion = () => {
@@ -61,9 +66,11 @@ export default function CreatePage() {
         id,
         title: title || 'Untitled Review',
         context,
-        embed_url: embedUrl,
+        embed_url: reviewMode === 'standard' ? embedUrl : '',
         embed_type: embedType,
         loom_url: loomUrl,
+        review_mode: reviewMode,
+        compare_options: reviewMode === 'compare' ? compareOptions.filter(o => o.embed_url.trim()) : [],
         questions: questions.filter(q => q.text.trim()),
       })
       const baseUrl = window.location.origin
@@ -164,6 +171,27 @@ export default function CreatePage() {
           {/* Step 1: Content */}
           {step === 1 && (
             <div className="animate-in">
+              {/* Review mode toggle */}
+              <div className="form-group">
+                <label className="form-label">Review type</label>
+                <div className="embed-options">
+                  <div
+                    className={`embed-option ${reviewMode === 'standard' ? 'selected' : ''}`}
+                    onClick={() => setReviewMode('standard')}
+                  >
+                    <div className="embed-option-icon">📋</div>
+                    <div className="embed-option-label">Standard Review</div>
+                  </div>
+                  <div
+                    className={`embed-option ${reviewMode === 'compare' ? 'selected' : ''}`}
+                    onClick={() => setReviewMode('compare')}
+                  >
+                    <div className="embed-option-icon">⚖️</div>
+                    <div className="embed-option-label">A/B Compare</div>
+                  </div>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Review title</label>
                 <input
@@ -186,32 +214,165 @@ export default function CreatePage() {
                 <p className="form-hint">Be specific — it helps reviewers give better feedback.</p>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Embed your design</label>
-                <div className="embed-options">
-                  {(['prototype', 'figma', 'upload'] as const).map((type) => (
-                    <div
-                      key={type}
-                      className={`embed-option ${embedType === type ? 'selected' : ''}`}
-                      onClick={() => setEmbedType(type)}
-                    >
-                      <div className="embed-option-icon">
-                        {type === 'prototype' ? '🔗' : type === 'figma' ? '🎨' : '📸'}
+              {reviewMode === 'standard' ? (
+                <div className="form-group">
+                  <label className="form-label">Embed your design</label>
+                  <div className="embed-options">
+                    {(['prototype', 'figma', 'upload'] as const).map((type) => (
+                      <div
+                        key={type}
+                        className={`embed-option ${embedType === type ? 'selected' : ''}`}
+                        onClick={() => setEmbedType(type)}
+                      >
+                        <div className="embed-option-icon">
+                          {type === 'prototype' ? '🔗' : type === 'figma' ? '🎨' : '📸'}
+                        </div>
+                        <div className="embed-option-label">
+                          {type === 'prototype' ? 'Prototype URL' : type === 'figma' ? 'Figma Link' : 'Screenshots'}
+                        </div>
                       </div>
-                      <div className="embed-option-label">
-                        {type === 'prototype' ? 'Prototype URL' : type === 'figma' ? 'Figma Link' : 'Screenshots'}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <input
+                    className="form-input"
+                    type="url"
+                    placeholder={embedType === 'figma' ? 'Paste your Figma URL...' : 'Paste your prototype URL...'}
+                    value={embedUrl}
+                    onChange={(e) => setEmbedUrl(e.target.value)}
+                  />
                 </div>
-                <input
-                  className="form-input"
-                  type="url"
-                  placeholder={embedType === 'figma' ? 'Paste your Figma URL...' : 'Paste your prototype URL...'}
-                  value={embedUrl}
-                  onChange={(e) => setEmbedUrl(e.target.value)}
-                />
-              </div>
+              ) : (
+                <div className="form-group">
+                  <label className="form-label">Design options to compare</label>
+                  <p className="form-hint" style={{ marginBottom: 16, marginTop: 0 }}>
+                    Upload 2–3 design screenshots. Reviewers will pick their favourite before leaving feedback.
+                  </p>
+                  <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                    {compareOptions.map((opt, i) => (
+                      <div key={i} style={{
+                        flex: '1 1 200px',
+                        minWidth: 200,
+                        border: '2px dashed var(--border)',
+                        borderRadius: 'var(--radius-lg)',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}>
+                        {/* Label input */}
+                        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            className="form-input"
+                            type="text"
+                            placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                            value={opt.label}
+                            onChange={(e) => {
+                              const updated = [...compareOptions]
+                              updated[i] = { ...updated[i], label: e.target.value }
+                              setCompareOptions(updated)
+                            }}
+                            style={{ border: 'none', padding: 0, fontSize: 14, fontWeight: 600, background: 'transparent', flex: 1 }}
+                          />
+                          {compareOptions.length > 2 && (
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setCompareOptions(compareOptions.filter((_, j) => j !== i))}
+                              style={{ padding: '2px 6px', fontSize: 14, lineHeight: 1 }}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Upload area */}
+                        {opt.embed_url ? (
+                          <div style={{ position: 'relative' }}>
+                            <img
+                              src={opt.embed_url}
+                              alt={opt.label}
+                              style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }}
+                            />
+                            <button
+                              onClick={() => {
+                                const updated = [...compareOptions]
+                                updated[i] = { ...updated[i], embed_url: '' }
+                                setCompareOptions(updated)
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                background: 'rgba(0,0,0,0.6)',
+                                color: 'white',
+                                border: 'none',
+                                fontSize: 14,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : (
+                          <label style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            height: 180,
+                            cursor: uploading === i ? 'wait' : 'pointer',
+                            color: 'var(--text-tertiary)',
+                            fontSize: 13,
+                            gap: 8,
+                          }}>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0]
+                                if (!file) return
+                                setUploading(i)
+                                try {
+                                  const url = await uploadImage(file, `compare_${Date.now()}`)
+                                  const updated = [...compareOptions]
+                                  updated[i] = { ...updated[i], embed_url: url }
+                                  setCompareOptions(updated)
+                                } catch (err) {
+                                  console.error(err)
+                                  showToast('Error uploading image')
+                                } finally {
+                                  setUploading(null)
+                                }
+                              }}
+                            />
+                            {uploading === i ? (
+                              <span>Uploading...</span>
+                            ) : (
+                              <>
+                                <span style={{ fontSize: 28 }}>📸</span>
+                                <span>Click to upload</span>
+                              </>
+                            )}
+                          </label>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {compareOptions.length < 3 && (
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setCompareOptions([...compareOptions, { label: `Option ${String.fromCharCode(65 + compareOptions.length)}`, embed_url: '' }])}
+                      style={{ marginTop: 12 }}
+                    >
+                      + Add option
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">
@@ -228,7 +389,7 @@ export default function CreatePage() {
               </div>
 
               <div className="form-actions">
-                <button className="btn btn-ghost" onClick={() => router.push('/')}>Cancel</button>
+                <button className="btn btn-ghost" onClick={() => window.location.href = '/'}>Cancel</button>
                 <button className="btn btn-primary" onClick={() => goToStep(2)}>Next: Questions →</button>
               </div>
             </div>
@@ -419,13 +580,13 @@ export default function CreatePage() {
           )}
 
           <div className="modal-actions" style={{ marginTop: 20 }}>
-            <button className="btn btn-ghost" onClick={() => { setShowShareModal(false); router.push('/') }}>
+            <button className="btn btn-ghost" onClick={() => { setShowShareModal(false); window.location.href = '/' }}>
               Done
             </button>
             <button className="btn btn-accent" onClick={() => {
               setShowShareModal(false)
               const id = shareUrl.split('/r/')[1]
-              router.push(`/r/${id}`)
+              window.location.href = `/r/${id}`
             }}>
               Preview as Reviewer →
             </button>

@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   embed_url TEXT DEFAULT '',
   embed_type TEXT DEFAULT 'prototype' CHECK (embed_type IN ('prototype', 'figma', 'upload')),
   loom_url TEXT DEFAULT '',
+  review_mode TEXT DEFAULT 'standard' CHECK (review_mode IN ('standard', 'compare')),
+  compare_options JSONB DEFAULT '[]'::jsonb,
   questions JSONB DEFAULT '[]'::jsonb,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'closed')),
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -21,6 +23,9 @@ CREATE TABLE IF NOT EXISTS responses (
   review_id TEXT NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
   reviewer_name TEXT DEFAULT 'Anonymous',
   vibe_score REAL NOT NULL,
+  brand_score REAL,
+  flow_score REAL,
+  chosen_option TEXT DEFAULT NULL,
   quick_take TEXT DEFAULT '',
   answers JSONB DEFAULT '[]'::jsonb,
   pins JSONB DEFAULT '[]'::jsonb,
@@ -73,10 +78,10 @@ INSERT INTO reviews (id, title, context, embed_url, embed_type, loom_url, questi
 ON CONFLICT (id) DO NOTHING;
 
 -- Seed demo responses
-INSERT INTO responses (id, review_id, reviewer_name, vibe_score, quick_take, answers, pins, submitted_at) VALUES
-  ('r1', 'demo_shipment', 'Jake Kim', 9.2, 'Love the new timeline view', '[{"question": "Easy to scan?", "answer": "Very much"}]', '[]', now() - interval '45 minutes'),
-  ('r2', 'demo_shipment', 'Maria Chen', 7.5, 'Big improvement, map needs work', '[{"question": "Easy to scan?", "answer": "Yes"}]', '[]', now() - interval '30 minutes'),
-  ('r3', 'demo_shipment', 'Alex Santos', 8.8, 'Ship it', '[]', '[]', now() - interval '20 minutes'),
-  ('r4', 'demo_website', 'Dan Lee', 9.0, 'Dark theme is fire', '[{"question": "Which variation?", "answer": "Dark, 100%"}]', '[]', now() - interval '20 hours'),
-  ('r5', 'demo_website', 'Robin Powell', 9.4, '', '[]', '[]', now() - interval '18 hours')
+INSERT INTO responses (id, review_id, reviewer_name, vibe_score, brand_score, flow_score, quick_take, answers, pins, submitted_at) VALUES
+  ('r1', 'demo_shipment', 'Jake Kim', 9.2, 8.5, 7.8, 'Love the new timeline view', '[{"question": "Easy to scan?", "answer": "Very much"}]', '[]', now() - interval '45 minutes'),
+  ('r2', 'demo_shipment', 'Maria Chen', 7.5, 6.0, 8.2, 'Big improvement, map needs work', '[{"question": "Easy to scan?", "answer": "Yes"}]', '[]', now() - interval '30 minutes'),
+  ('r3', 'demo_shipment', 'Alex Santos', 8.8, 9.0, 8.5, 'Ship it', '[]', '[]', now() - interval '20 minutes'),
+  ('r4', 'demo_website', 'Dan Lee', 9.0, 9.5, 7.0, 'Dark theme is fire', '[{"question": "Which variation?", "answer": "Dark, 100%"}]', '[]', now() - interval '20 hours'),
+  ('r5', 'demo_website', 'Robin Powell', 9.4, 9.2, 8.8, '', '[]', '[]', now() - interval '18 hours')
 ON CONFLICT (id) DO NOTHING;

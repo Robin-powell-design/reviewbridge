@@ -1,3 +1,8 @@
+export interface CompareOption {
+  label: string
+  embed_url: string
+}
+
 export interface Review {
   id: string
   title: string
@@ -5,6 +10,8 @@ export interface Review {
   embed_url: string
   embed_type: 'prototype' | 'figma' | 'upload'
   loom_url: string
+  review_mode: 'standard' | 'compare'
+  compare_options: CompareOption[]
   questions: Question[]
   status: 'active' | 'closed'
   created_at: string
@@ -24,6 +31,7 @@ export interface Response {
   vibe_score: number
   brand_score: number
   flow_score: number
+  chosen_option: string | null
   quick_take: string
   answers: QuestionAnswer[]
   pins: PinComment[]

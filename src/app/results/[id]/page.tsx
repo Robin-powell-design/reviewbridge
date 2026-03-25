@@ -50,6 +50,17 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
   const avgScoreNum = parseFloat(avgScore) || 0
   const vibeColor = avgScoreNum >= 7 ? 'var(--green)' : avgScoreNum >= 5 ? 'var(--yellow)' : 'var(--red)'
 
+  // Compare option tally
+  const isCompare = review.review_mode === 'compare'
+  const compareTally: Record<string, number> = {}
+  if (isCompare) {
+    responses.forEach(r => {
+      const opt = (r as any).chosen_option
+      if (opt) compareTally[opt] = (compareTally[opt] || 0) + 1
+    })
+  }
+  const totalPicks = Object.values(compareTally).reduce((a, b) => a + b, 0)
+
   // Vibe breakdown
   const vibeRanges = [
     { emoji: '😍', min: 8, count: 0 },
@@ -95,6 +106,59 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
             </div>
           ) : (
             <>
+              {/* Compare tally */}
+              {isCompare && Object.keys(compareTally).length > 0 && (
+                <div className="animate-in" style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--border)',
+                  padding: '24px',
+                  marginBottom: 20,
+                }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 600 }}>Preferred Option</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {(review.compare_options || []).map((opt: { label: string; embed_url: string }, i: number) => {
+                      const count = compareTally[opt.label] || 0
+                      const pct = totalPicks > 0 ? (count / totalPicks) * 100 : 0
+                      const isWinner = count === Math.max(...Object.values(compareTally))
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{ fontWeight: 600, fontSize: 14, width: 100 }}>{opt.label}</span>
+                          <div style={{
+                            flex: 1,
+                            height: 28,
+                            background: 'var(--bg-secondary)',
+                            borderRadius: 'var(--radius)',
+                            overflow: 'hidden',
+                            position: 'relative',
+                          }}>
+                            <div style={{
+                              width: `${pct}%`,
+                              height: '100%',
+                              background: isWinner ? 'var(--accent)' : 'var(--text-tertiary)',
+                              borderRadius: 'var(--radius)',
+                              transition: 'width 0.5s ease',
+                              minWidth: count > 0 ? 24 : 0,
+                            }} />
+                            <span style={{
+                              position: 'absolute',
+                              left: 10,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: pct > 30 ? 'white' : 'var(--text-primary)',
+                            }}>
+                              {count} vote{count !== 1 ? 's' : ''} ({Math.round(pct)}%)
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="results-overview animate-in">
                 <div className="results-vibe-summary">
                   <div className="results-vibe-score" style={{ color: vibeColor }}>{avgScore}</div>
@@ -133,6 +197,18 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
                         <div className="response-author">
                           <div className="response-avatar" style={{ background: color }}>{initials}</div>
                           <span className="response-name">{resp.reviewer_name}</span>
+                          {isCompare && (resp as any).chosen_option && (
+                            <span style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: '2px 8px',
+                              borderRadius: 'var(--radius-full)',
+                              background: 'var(--accent-soft)',
+                              color: 'var(--accent)',
+                            }}>
+                              {(resp as any).chosen_option}
+                            </span>
+                          )}
                           <span className="response-vibe">{emoji} {resp.vibe_score}</span>
                         </div>
                         <div className="response-answers">
