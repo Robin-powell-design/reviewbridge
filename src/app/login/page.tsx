@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
+function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,6 +31,35 @@ export default function LoginPage() {
   }
 
   return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="password"
+        className="input"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        autoFocus
+        style={{ width: '100%', marginBottom: '16px', height: '48px', paddingLeft: '12px' }}
+      />
+      {error && (
+        <p style={{ color: 'var(--danger)', fontSize: 14, marginBottom: 12 }}>
+          {error}
+        </p>
+      )}
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={loading || !password}
+        style={{ width: '100%' }}
+      >
+        {loading ? 'Logging in...' : 'Log in'}
+      </button>
+    </form>
+  )
+}
+
+export default function LoginPage() {
+  return (
     <div style={{
       minHeight: '100vh',
       display: 'flex',
@@ -46,30 +75,9 @@ export default function LoginPage() {
             Enter the password to continue
           </p>
         </div>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            className="input"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoFocus
-            style={{ width: '100%', marginBottom: '16px', height: '48px', paddingLeft: '12px' }}
-          />
-          {error && (
-            <p style={{ color: 'var(--danger)', fontSize: 14, marginBottom: 12 }}>
-              {error}
-            </p>
-          )}
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading || !password}
-            style={{ width: '100%' }}
-          >
-            {loading ? 'Logging in...' : 'Log in'}
-          </button>
-        </form>
+        <Suspense>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   )
