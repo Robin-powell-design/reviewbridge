@@ -13,6 +13,8 @@ export async function createReview(data: {
   review_mode?: 'standard' | 'compare'
   compare_options?: { label: string; embed_url: string }[]
   questions: { text: string; type: string }[]
+  deadline?: string | null
+  invited_emails?: string[]
 }) {
   const supabase = await createServerSupabaseClient()
 
@@ -26,6 +28,8 @@ export async function createReview(data: {
     review_mode: data.review_mode || 'standard',
     compare_options: data.compare_options || [],
     questions: data.questions,
+    deadline: data.deadline || null,
+    invited_emails: data.invited_emails || [],
     status: 'active',
   })
 
@@ -100,6 +104,24 @@ export async function updateReview(id: string, data: {
   revalidatePath(`/r/${id}`)
   revalidatePath(`/results/${id}`)
   return { id }
+}
+
+export async function addInvitedEmail(reviewId: string, email: string) {
+  const supabase = await createServerSupabaseClient()
+
+  const { data: review } = await supabase
+    .from('reviews')
+    .select('invited_emails')
+    .eq('id', reviewId)
+    .single()
+
+  const existing: string[] = review?.invited_emails || []
+  if (!existing.includes(email)) {
+    await supabase
+      .from('reviews')
+      .update({ invited_emails: [...existing, email] })
+      .eq('id', reviewId)
+  }
 }
 
 export async function getReviewById(id: string) {

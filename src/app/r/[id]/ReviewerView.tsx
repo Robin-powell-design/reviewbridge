@@ -216,6 +216,18 @@ export default function ReviewerView({ review }: { review: Review }) {
             ReviewBridge
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {review.deadline && (
+              <span style={{
+                padding: '3px 10px',
+                borderRadius: 'var(--radius-full)',
+                fontSize: 11,
+                fontWeight: 600,
+                background: new Date(review.deadline).getTime() < Date.now() ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)',
+                color: new Date(review.deadline).getTime() < Date.now() ? '#ef4444' : '#22c55e',
+              }}>
+                {new Date(review.deadline).getTime() < Date.now() ? 'Overdue' : `Due ${new Date(review.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+              </span>
+            )}
             <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
               Reviewing: <strong>{review.title}</strong>
             </span>
@@ -414,20 +426,6 @@ export default function ReviewerView({ review }: { review: Review }) {
                 allow="clipboard-write"
                 allowFullScreen
               />
-            ) : loomEmbedUrl ? (
-              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-secondary)' }}>
-                <div style={{ flex: 1, position: 'relative' }}>
-                  <iframe
-                    src={loomEmbedUrl}
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                    allowFullScreen
-                    allow="autoplay; fullscreen"
-                  />
-                </div>
-                <div style={{ padding: '12px 16px', background: 'var(--bg-card)', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>🎥 Loom walkthrough by the designer</span>
-                </div>
-              </div>
             ) : (
               <div className="prototype-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, padding: 40 }}>
                 <div style={{ fontSize: 64, opacity: 0.3 }}>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Nav from '@/components/Nav'
 import Toast, { showToast } from '@/components/Toast'
-import { createReview } from '@/lib/actions/reviews'
+import { createReview, addInvitedEmail } from '@/lib/actions/reviews'
 import { generateId } from '@/lib/utils'
 import { uploadImage } from '@/lib/uploadImage'
 
@@ -33,6 +33,7 @@ export default function CreatePage() {
   const [sendingEmail, setSendingEmail] = useState(false)
   const [shareTab, setShareTab] = useState<'slack' | 'email'>('slack')
   const [slackMessage, setSlackMessage] = useState('')
+  const [deadline, setDeadline] = useState('')
   const [uploading, setUploading] = useState<number | null>(null)
   const [publishing, setPublishing] = useState(false)
 
@@ -72,6 +73,8 @@ export default function CreatePage() {
         review_mode: reviewMode,
         compare_options: reviewMode === 'compare' ? compareOptions.filter(o => o.embed_url.trim()) : [],
         questions: questions.filter(q => q.text.trim()),
+        deadline: deadline || null,
+        invited_emails: sentEmails,
       })
       const baseUrl = window.location.origin
       const url = `${baseUrl}/r/${id}`
@@ -120,6 +123,8 @@ export default function CreatePage() {
         showToast('Email not configured yet — copy the link to share manually')
       } else if (data.success) {
         setSentEmails([...sentEmails, inviteEmail])
+        const reviewId = shareUrl.split('/r/')[1]
+        addInvitedEmail(reviewId, inviteEmail)
         showToast(`Invite sent to ${inviteEmail}`)
         setInviteEmail('')
       } else {
@@ -507,6 +512,21 @@ export default function CreatePage() {
                 <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={addQuestion}>
                   + Add question
                 </button>
+              </div>
+
+              <div className="form-group" style={{ marginTop: 8 }}>
+                <label className="form-label">
+                  Deadline <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(optional)</span>
+                </label>
+                <input
+                  className="form-input"
+                  type="date"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  style={{ maxWidth: 220 }}
+                />
+                <p className="form-hint">Reviewers will see the deadline. Reminders are sent 24h before.</p>
               </div>
 
               <div className="form-actions">

@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   compare_options JSONB DEFAULT '[]'::jsonb,
   questions JSONB DEFAULT '[]'::jsonb,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'closed')),
+  deadline TIMESTAMPTZ DEFAULT NULL,
+  invited_emails JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );

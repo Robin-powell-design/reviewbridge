@@ -14,6 +14,8 @@ export interface Review {
   compare_options: CompareOption[]
   questions: Question[]
   status: 'active' | 'closed'
+  deadline: string | null
+  invited_emails: string[]
   created_at: string
   updated_at: string
   responses?: Response[]

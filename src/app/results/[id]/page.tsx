@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Toast from '@/components/Toast'
 import CopyLinkButton from './CopyLinkButton'
+import ReminderPanel from './ReminderPanel'
 import type { Response } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -44,6 +45,13 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
   }
 
   const responses: Response[] = review.responses || []
+  const invitedEmails: string[] = review.invited_emails || []
+  const respondedNames = responses.map(r => r.reviewer_name?.toLowerCase())
+  const pendingEmails = invitedEmails.filter(e => !respondedNames.some(n => e.toLowerCase().includes(n)))
+  const deadline = review.deadline ? new Date(review.deadline) : null
+  const deadlineStr = deadline ? deadline.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : null
+  const isOverdue = deadline ? deadline.getTime() < Date.now() : false
+
   const scores = responses.map(r => r.vibe_score).filter(Boolean)
   const avgScore = scores.length > 0
     ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)
@@ -93,6 +101,15 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
               <CopyLinkButton reviewId={review.id} reviewTitle={review.title} />
             </div>
           </div>
+
+          <ReminderPanel
+            reviewId={review.id}
+            invitedEmails={invitedEmails}
+            pendingEmails={pendingEmails}
+            respondedCount={responses.length}
+            deadline={deadlineStr}
+            isOverdue={isOverdue}
+          />
 
           {responses.length === 0 ? (
             <div className="empty-state animate-in">

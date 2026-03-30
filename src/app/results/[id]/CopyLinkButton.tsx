@@ -3,6 +3,7 @@
 import { useState } from 'react'
 // @ts-expect-error no types for react-dom
 import { createPortal } from 'react-dom'
+import { addInvitedEmail } from '@/lib/actions/reviews'
 
 export default function CopyLinkButton({ reviewId, reviewTitle }: { reviewId: string; reviewTitle: string }) {
   const [showModal, setShowModal] = useState(false)
@@ -48,6 +49,7 @@ export default function CopyLinkButton({ reviewId, reviewTitle }: { reviewId: st
         handleCopy()
       } else if (data.success) {
         setSentEmails([...sentEmails, email])
+        addInvitedEmail(reviewId, email)
         setEmail('')
       }
     } catch {
