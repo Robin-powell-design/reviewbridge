@@ -16,7 +16,7 @@ interface Pin {
 
 export default function ReviewerView({ review }: { review: Review }) {
   const { isAdmin } = useAdmin()
-  const [activeTab, setActiveTab] = useState<'vibe' | 'feedback' | 'pins'>('vibe')
+  const [activeTab, setActiveTab] = useState<'vibe' | 'feedback' | 'pins' | 'ai'>('vibe')
   const [vibeValue, setVibeValue] = useState(70)
   const [brandValue, setBrandValue] = useState(50)
   const [flowValue, setFlowValue] = useState(50)
@@ -35,6 +35,10 @@ export default function ReviewerView({ review }: { review: Review }) {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [showLoom, setShowLoom] = useState(false)
+  const [aiData, setAiData] = useState<{ scores: { score: number; label: string; text: string }[]; suggestions: { priority: string; label: string; text: string }[] } | null>(null)
+  const [showAiPanel, setShowAiPanel] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState(false)
   const frameRef = useRef<HTMLDivElement>(null)
 
   const vibeScore = (vibeValue / 10).toFixed(1)
@@ -120,6 +124,32 @@ export default function ReviewerView({ review }: { review: Review }) {
     }
   }
 
+  const fetchAiReview = async () => {
+    if (aiData || aiLoading) return
+    setAiLoading(true)
+    setAiError(false)
+    try {
+      const res = await fetch('/api/ai-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: review.title,
+          context: review.context,
+          embedUrl: review.embed_url,
+          embedType: review.embed_type,
+          questions: review.questions,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      const data = await res.json()
+      setAiData(data)
+    } catch {
+      setAiError(true)
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
   // For compare reviews, show the chosen option's embed after selection
   const chosenEmbedRaw = review.review_mode === 'compare' && chosenOption
     ? (review.compare_options || []).find(o => o.label === chosenOption)?.embed_url || ''
@@ -199,6 +229,13 @@ export default function ReviewerView({ review }: { review: Review }) {
             </span>
             {isAdmin && (
               <>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => { setShowAiPanel(true); fetchAiReview() }}
+                  style={{ fontSize: 12, height: 29, display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}
+                >
+                  ✨ AI Check
+                </button>
                 <button
                   className="btn btn-secondary btn-sm"
                   onClick={() => window.location.href = `/results/${review.id}`}
@@ -483,7 +520,7 @@ export default function ReviewerView({ review }: { review: Review }) {
             </button>
           </div>
 
-          <div className="panel-content">
+          <div className="panel-content" style={{ position: 'relative' }}>
             {/* Vibe Check */}
             {activeTab === 'vibe' && (
               <div className="panel-section active" style={{ display: 'block' }}>
@@ -694,6 +731,126 @@ export default function ReviewerView({ review }: { review: Review }) {
                   <p style={{ margin: 0, fontSize: 13, color: 'var(--text-tertiary)' }}>
                     Pins are optional — add them if you want, then submit below.
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* AI Check slide-up overlay */}
+            {showAiPanel && isAdmin && (
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                top: 0,
+                background: 'var(--bg-card)',
+                zIndex: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                animation: 'slideUp 0.3s ease',
+                overflow: 'auto',
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px 24px',
+                  borderBottom: '1px solid var(--border)',
+                  position: 'sticky',
+                  top: 0,
+                  background: 'var(--bg-card)',
+                  zIndex: 1,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>✨</span>
+                    <span style={{ fontWeight: 600, fontSize: 15 }}>AI Design Review</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)', background: 'var(--bg-secondary)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>Powered by Groq</span>
+                  </div>
+                  <button
+                    onClick={() => setShowAiPanel(false)}
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      border: 'none',
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 14,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div style={{ padding: '20px 24px', flex: 1 }}>
+                  {aiLoading && (
+                    <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+                      <div className="ai-loading">
+                        <div className="ai-loading-dot" />
+                        <div className="ai-loading-dot" />
+                        <div className="ai-loading-dot" />
+                      </div>
+                      <p style={{ margin: '16px 0 0', fontSize: 13, color: 'var(--text-secondary)' }}>
+                        Analysing your design with AI...
+                      </p>
+                    </div>
+                  )}
+
+                  {aiError && (
+                    <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+                      <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
+                      <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)' }}>
+                        Failed to generate AI review.
+                      </p>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        style={{ marginTop: 12 }}
+                        onClick={() => { setAiData(null); fetchAiReview() }}
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  )}
+
+                  {aiData && (
+                    <div>
+                      {aiData.scores.map((s, i) => {
+                        const scoreClass = s.score >= 7 ? 'score-high' : s.score >= 4 ? 'score-mid' : 'score-low'
+                        return (
+                          <div key={i} className="ai-analysis-item">
+                            <div className={`ai-analysis-score ${scoreClass}`}>
+                              {s.score.toFixed(1)}
+                            </div>
+                            <div className="ai-analysis-content">
+                              <div className="ai-analysis-label">{s.label}</div>
+                              <div className="ai-analysis-text">{s.text}</div>
+                            </div>
+                          </div>
+                        )
+                      })}
+
+                      <div style={{ marginTop: 20 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: 'var(--text-secondary)' }}>
+                          Suggestions
+                        </div>
+                        {aiData.suggestions.map((s, i) => {
+                          const icon = s.priority === 'high' ? '🔴' : s.priority === 'medium' ? '🟡' : '🟢'
+                          return (
+                            <div key={i} className="ai-suggestion">
+                              <span className="ai-suggestion-icon">{icon}</span>
+                              <div>
+                                <strong style={{ fontSize: 13 }}>{s.label}</strong>
+                                <div style={{ color: 'var(--text-secondary)', marginTop: 2 }}>{s.text}</div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
